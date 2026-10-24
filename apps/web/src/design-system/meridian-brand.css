@@ -1,0 +1,513 @@
+/* Shared product identity: the same neutral palette, type, borders and controls on the home page and in every workspace. Campaign artwork and semantic data colours remain content-specific. */
+:root {
+  --meridian-canvas: #fafaf9;
+  --meridian-surface: #fff;
+  --meridian-ink: #171717;
+  --meridian-muted: #737370;
+  --meridian-border: #e5e5e2;
+  --meridian-soft: #f1f1ee;
+  --meridian-radius: 12px;
+  font-family: "Instrument Sans Variable", Arial, sans-serif;
+  font-size: 16px;
+}
+.app,
+.app.admin-workspace,
+.screen-studio,
+.claim-page {
+  --canvas: var(--meridian-canvas);
+  --surface: var(--meridian-surface);
+  --text: var(--meridian-ink);
+  --muted: var(--meridian-muted);
+  --border: var(--meridian-border);
+  --elevated: var(--meridian-soft);
+  --hover: #f4f4f0;
+  font-family: "Instrument Sans Variable", Arial, sans-serif;
+  color: var(--meridian-ink);
+  background: var(--meridian-canvas);
+}
+.app .sidebar {
+  --surface: #fff;
+  --text: #171717;
+  --muted: #737370;
+  --border: #e5e5e2;
+  --hover: #f4f4f0;
+  background: #fff;
+  color: #171717;
+  border-right: 1px solid #e5e5e2;
+}
+.app .brand {
+  white-space: normal;
+  font-size: 19px;
+  letter-spacing: -0.035em;
+  gap: 9px;
+}
+.app .brand > div:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.app .brand small {
+  display: block;
+  color: #7b7b75;
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: 0;
+  margin-top: 4px;
+}
+.app .brandmark,
+.studio-navigation .studio-monogram,
+.claim-page .brandmark {
+  background: #1b1b1b;
+  color: #fff;
+  box-shadow: none;
+  border-radius: 8px;
+}
+.app .airport {
+  background: #f7f7f4;
+  border: 1px solid #e5e5df;
+  color: #43433d;
+  white-space: normal;
+}
+.app .airport small,
+.app .airport-icon {
+  color: #86867d;
+}
+.app .airport > span {
+  min-width: 0;
+}
+.app .airport > svg {
+  display: none;
+}
+.app .nav-caption {
+  color: #8b8b81;
+  letter-spacing: 0.05em;
+  font-size: 12px;
+}
+.app nav button,
+.app .sidebar-link {
+  color: #707067;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.app nav button.active {
+  background: #20201e;
+  color: #fff;
+  box-shadow: none;
+  border-radius: 9px;
+}
+.app nav button.active svg {
+  color: inherit;
+}
+.app nav .count {
+  color: #8b6b32;
+  background: #e6d7b12e;
+}
+.app nav button.active .count {
+  color: #e9d8b5;
+  background: #ffffff18;
+}
+.app .sidebar-link:hover {
+  background: #f2f2ed;
+  color: #222;
+}
+.app .network-state,
+.app .network-state small,
+.app .profile small {
+  color: #818176;
+}
+.app .profile {
+  border-color: #e5e5df;
+  color: #3f3f38;
+  font-size: 12px;
+}
+.app .avatar,
+.app .sidebar .avatar {
+  background: #f0f0ec;
+  color: #77776b;
+}
+.app .sidebar-link .tiny-tag {
+  display: none;
+}
+.app .workspace > header {
+  background: #fff;
+  border-color: #e5e5e2;
+}
+.app .breadcrumb b {
+  color: #292925;
+}
+.app .simulation {
+  background: #f8f8f5;
+  border-color: #e5e5df;
+}
+.app .sim-controls .speed {
+  border-radius: 30px;
+  background: #eeeee9;
+}
+.app .speed button.active {
+  background: #fff;
+  color: #171717;
+}
+.app .play-button {
+  color: #333;
+  background: #fff;
+  border-color: #d8d8d1;
+}
+.app .quick-delay,
+.light .quick-delay {
+  color: #5b5b4e;
+  background: #eeeee8;
+  border-color: #deded4;
+}
+.app .primary {
+  background: var(--accent, #1b1b1b);
+  border-color: var(--accent, #1b1b1b);
+  color: #fff;
+  border-radius: 100px;
+}
+.app .primary:hover {
+  filter: brightness(1.2);
+}
+.app .page-heading h1 {
+  color: #171717;
+  font-weight: 550;
+  letter-spacing: -0.045em;
+}
+.app .page-heading p {
+  color: #7c7c72;
+}
+.app .eyebrow {
+  color: #858578;
+  letter-spacing: 0.065em;
+}
+.app .page-actions > button {
+  border-radius: 100px;
+  background: #fff;
+}
+.app .page-actions > button.primary {
+  background: var(--accent, #1b1b1b);
+  border-color: var(--accent, #1b1b1b);
+  color: #fff;
+}
+.app .panel,
+.app .kpi {
+  background: #fff;
+  border-color: #e5e5df;
+  border-radius: var(--meridian-radius);
+  box-shadow: 0 2px 5px #17171702;
+}
+.app .panel-heading h2 {
+  color: #25251f;
+}
+.app .kpi-top {
+  color: #747469;
+}
+.app .kpi-top svg {
+  color: #9a9a8b;
+}
+.app .kpi-value {
+  color: #25251f;
+}
+.app .kpi-sub {
+  color: #868677;
+}
+.app .text-button {
+  color: #33332b;
+}
+.app .subtle {
+  color: #888879;
+}
+.app .segmented {
+  background: #f1f1eb;
+  border-color: #e2e2d8;
+  border-radius: 30px;
+}
+.app .segmented button {
+  border-radius: 30px;
+}
+.app .segmented button.active {
+  color: #24241e;
+  background: #fff;
+}
+.app .panel-heading .tiny-tag {
+  background: #efefea;
+  color: #747461;
+}
+.app .retail-hero {
+  background: #efefe9;
+  border: 1px solid #e3e3d9;
+  border-radius: 18px;
+}
+.app .retail-hero h2 {
+  color: #20201b;
+}
+.app .retail-hero p {
+  color: #7d7d6e;
+}
+.app .retail-hero button {
+  background: #22221e;
+  border-color: #22221e;
+  border-radius: 100px;
+}
+.app .hero-orb {
+  background: radial-gradient(ellipse, #e1e1d3, transparent 68%);
+  color: #91917d;
+}
+.admin-workspace .admin-attention {
+  background: #fbf8ee;
+  border-color: #eae2cd;
+  color: #796438;
+}
+.admin-workspace .admin-attention button {
+  color: #796438;
+}
+.admin-workspace .pulse-panel {
+  background: #f2f2ec;
+  border-color: #e2e2d7;
+}
+.admin-workspace .pulse-highlight .tiny-tag,
+.admin-workspace .pulse-mini {
+  color: #777762;
+}
+.admin-workspace .pulse-highlight h3 small {
+  color: #83836d;
+}
+.admin-workspace .pulse-caption {
+  border-color: #ddddd0;
+}
+.admin-workspace .ai-note {
+  background: #ffffffa6;
+  color: #72725c;
+  border-color: #e0e0d1;
+}
+.admin-workspace .pulse-panel .text-button {
+  color: #424234;
+}
+.admin-workspace .network-summary {
+  color: #8a8a79;
+}
+.admin-workspace .network-focus {
+  background: #f1f1e8;
+  color: #6c6c50;
+  border-color: #ddddd0;
+}
+.admin-workspace .terminal-title {
+  border-color: #e2e2d7;
+}
+.admin-workspace .terminal-title > b {
+  background: #36362e;
+}
+.admin-workspace .terminal-title > small {
+  color: #8b8b77;
+}
+.admin-workspace .network-zone {
+  background: #f7f7f2;
+  border-color: #e5e5da;
+}
+.admin-workspace .network-zone.focus-zone {
+  background: #efefe1;
+  border-color: #ceceb5;
+}
+.admin-workspace .zone-title > span {
+  color: #8d8d79;
+}
+.admin-workspace .zone-density {
+  background: #e2e2d6;
+}
+.admin-workspace .zone-density > i {
+  background: #a9ad8f;
+}
+.admin-workspace .map-bottom {
+  color: #8d8d7b;
+}
+.screen-studio .studio-navigation {
+  background: #fff;
+  border-color: #e5e5e2;
+}
+.screen-studio .studio-brand {
+  color: #171717;
+  letter-spacing: -0.03em;
+}
+.screen-studio .studio-brand > span:last-child {
+  color: #828276;
+}
+.screen-studio .studio-heading h1 {
+  color: #171717;
+  letter-spacing: -0.045em;
+}
+.screen-studio .studio-heading > div > p,
+.screen-studio .studio-heading > div > span {
+  color: #88887a;
+}
+.screen-studio .studio-controls,
+.screen-studio .studio-preview,
+.screen-studio .studio-context > section {
+  background: #fff;
+  border-color: #e5e5df;
+}
+.screen-studio .studio-actions .studio-launch {
+  background: #1b1b1b;
+  color: white;
+  border-color: #1b1b1b;
+  border-radius: 100px;
+}
+.screen-studio .studio-actions .studio-launch:hover {
+  background: #383838;
+}
+.screen-studio .studio-orientation {
+  border-radius: 100px;
+  background: #f1f1eb;
+  border-color: #e2e2d8;
+}
+.screen-studio .studio-orientation button {
+  border-radius: 100px;
+  color: #828272;
+}
+.screen-studio .studio-orientation button.is-selected {
+  color: #20201b;
+  background: white;
+}
+.screen-studio .studio-clock > button {
+  color: #424236;
+  background: #f5f5ef;
+}
+.screen-studio .studio-clock time {
+  color: #25251d;
+}
+.screen-studio .studio-context h2 {
+  color: #28281f;
+}
+.screen-studio .context-section-title,
+.screen-studio .context-audience > span,
+.screen-studio .studio-screen-select label {
+  color: #878777;
+}
+.screen-studio .context-audience b {
+  color: #51513b;
+}
+.screen-studio .studio-context .context-why {
+  background: #f3f3eb;
+  border-color: #e1e1d3;
+}
+.screen-studio .studio-context button {
+  color: #484835;
+}
+.claim-page {
+  background: #fafaf9;
+}
+.claim-page .claim-card {
+  background: #fff;
+  border-color: #e5e5df;
+  border-radius: 22px;
+  box-shadow: 0 15px 45px #20201b04;
+}
+.claim-page .claim-brand {
+  color: #24241f;
+}
+.claim-page .claim-brand small {
+  color: #898978;
+}
+.claim-page .primary {
+  background: #20201d;
+  border-color: #20201d;
+  border-radius: 100px;
+}
+.claim-page .claim-offer {
+  background: #f2f2e9;
+  border-color: #e2e2d0;
+  color: #555541;
+}
+@media (min-width: 901px) {
+  .app .sidebar {
+    width: 228px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .app .workspace {
+    margin-left: 228px;
+  }
+  .app .brand small {
+    font-size: 12px;
+  }
+}
+@media (max-width: 900px) {
+  .app .sidebar {
+    width: 100%;
+    position: static;
+    padding: 16px 20px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 14px;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+  .app .workspace {
+    margin-left: 0;
+  }
+  .app .sidebar .brand {
+    font-size: 19px;
+  }
+  .app .sidebar .brand small {
+    font-size: 12px;
+  }
+  .app .sidebar .airport,
+  .app .sidebar .nav-caption,
+  .app .sidebar .network-state {
+    display: none;
+  }
+  .app .sidebar nav {
+    grid-column: 1/-1;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+  }
+  .app .sidebar nav button {
+    font-size: 14px;
+    padding: 10px 8px;
+    min-height: 42px;
+    justify-content: center;
+    display: flex;
+  }
+  .app .sidebar .sidebar-link {
+    display: flex;
+    width: auto;
+    font-size: 14px;
+    min-height: 38px;
+    padding: 7px 8px;
+  }
+  .app .sidebar .sidebar-link > svg:last-child {
+    margin-left: 0;
+  }
+  .app .sidebar-bottom {
+    display: block;
+    padding: 0;
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+    justify-self: end;
+  }
+  .app .sidebar .profile {
+    border: 0;
+    padding: 0;
+    min-height: 38px;
+    width: auto;
+  }
+  .app .sidebar .profile > span:nth-child(2),
+  .app .sidebar .profile .avatar {
+    display: none;
+  }
+  .app .sidebar .profile > svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+@media (max-width: 560px) {
+  .app .sidebar {
+    padding: 16px;
+  }
+  .app .sidebar nav {
+    grid-template-columns: 1fr 1fr;
+  }
+  .app .sidebar nav button {
+    justify-content: flex-start;
+  }
+}

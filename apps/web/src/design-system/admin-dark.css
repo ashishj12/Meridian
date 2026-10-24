@@ -1,0 +1,179 @@
+/* Same typography, spacing and components as the light workspaces; operations defaults to dark. */
+.app.admin-dark {
+  --meridian-canvas: #111211;
+  --meridian-surface: #191b19;
+  --meridian-ink: #f2f3ef;
+  --meridian-muted: #a2a79d;
+  --meridian-border: #33372f;
+  --meridian-soft: #232720;
+  --canvas: var(--meridian-canvas);
+  --surface: var(--meridian-surface);
+  --text: var(--meridian-ink);
+  --muted: var(--meridian-muted);
+  --border: var(--meridian-border);
+  --hover: #292e25;
+  color-scheme: dark;
+  color: var(--text);
+  background: var(--canvas);
+}
+.app.admin-dark
+  :is(
+    .sidebar,
+    .panel,
+    .kpi,
+    .topbar,
+    .simulation,
+    header,
+    .airport,
+    .profile,
+    .search-field
+  ) {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+  --surface: #191b19;
+  --text: #f2f3ef;
+  --muted: #a2a79d;
+  --border: #33372f;
+  --hover: #292e25;
+}
+.app.admin-dark
+  :is(
+    h1,
+    h2,
+    h3,
+    h4,
+    b,
+    .brand,
+    .kpi-value,
+    .panel-title,
+    .pulse-highlight h3
+  ) {
+  color: var(--text);
+}
+.app.admin-dark
+  :is(
+    p,
+    small,
+    .muted,
+    .map-toolbar,
+    .map-bottom,
+    .nav-caption,
+    .kpi-top,
+    .kpi-sub,
+    .breadcrumb,
+    .date-chip
+  ) {
+  color: var(--muted);
+}
+.app.admin-dark
+  :is(
+    button,
+    input,
+    select,
+    textarea,
+    .segmented,
+    .avatar,
+    .icon-surface,
+    .event-icon,
+    .ai-note,
+    .admin-attention
+  ) {
+  background: var(--elevated);
+  color: var(--text);
+  border-color: var(--border);
+}
+.app.admin-dark :is(button.primary, nav button.active) {
+  background: #d9e8b6;
+  color: #192017;
+}
+.app.admin-dark nav button {
+  color: var(--muted);
+}
+.app.admin-dark :is(.terminal-card, .network-terminal) {
+  background: var(--elevated);
+  border-color: var(--border);
+}
+.app.admin-dark :is(.map-center, .terminal-shape) {
+  fill: #252c23;
+  stroke: #505d48;
+}
+.app.admin-dark
+  :is(
+    th,
+    td,
+    .activity-row,
+    .feed-row,
+    .performance-strip,
+    .map-bottom,
+    .sidebar-bottom
+  ) {
+  border-color: var(--border);
+}
+.app.admin-dark :is(th, .segmented button.active) {
+  background: var(--elevated);
+  color: var(--text);
+}
+.landing-language {
+  border: 1px solid #deded8;
+  border-radius: 7px;
+  padding: 8px 10px;
+  background: white;
+  color: #222;
+}
+.studio-simulation-menu {
+  position: relative;
+  font-size: 13px;
+}
+.studio-simulation-menu summary {
+  cursor: pointer;
+  padding: 10px;
+}
+.studio-simulation-menu > div {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 30;
+  width: 220px;
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px #0002;
+}
+.app.admin-dark
+  :is(
+    .network-zone,
+    .network-focus,
+    .terminal-title,
+    .zone-density,
+    .sim-controls .speed,
+    .panel-heading .tiny-tag
+  ) {
+  background: var(--elevated);
+  color: var(--text);
+  border-color: var(--border);
+}
+.app.admin-dark .network-zone.focus-zone {
+  background: #2d3526;
+  border-color: #718754;
+}
+.app.admin-dark .speed button.active,
+.app.admin-dark .segmented button.active {
+  background: #d9e8b6;
+  color: #192017;
+}
+.app.admin-dark nav button:not(.active),
+.app.admin-dark .sidebar-link {
+  background: transparent;
+}
+.app.admin-dark .network-focus b,
+.app.admin-dark .zone-title b {
+  color: var(--text);
+}
+.app.admin-dark .network-screen {
+  padding: 0;
+  background: #2a3028;
+}

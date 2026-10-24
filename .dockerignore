@@ -1,0 +1,12 @@
+node_modules
+data
+.git
+.env
+test-results
+dist
+
+artifacts
+playwright-report
+docs
+tests
+*.zip

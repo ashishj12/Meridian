@@ -1,0 +1,131 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { createApp } from "../apps/api/src/app.mjs";
+import { EntityRepository } from "../apps/api/src/repositories/EntityRepository.mjs";
+import { createAidxMessage } from "../apps/api/src/adapters/airport-sources.mjs";
+test("HTTP campaign lifecycle, booking conflicts, QR rendering, validation and master data persistence", async () => {
+  const instance = createApp({
+    store: new EntityRepository(":memory:"),
+    timer: false,
+  });
+  const server = instance.app.listen(0, "127.0.0.1");
+  await new Promise((r) => server.on("listening", r));
+  const base = `http://127.0.0.1:${server.address().port}/api`;
+  const req = async (url, body, method = "POST") => {
+    const res = await fetch(
+      base + url,
+      body !== undefined
+        ? {
+            method,
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(body),
+          }
+        : undefined,
+    );
+    return {
+      status: res.status,
+      data: res.status === 204 ? null : await res.json(),
+    };
+  };
+  try {
+    assert.equal((await req("/health")).data.status, "ok");
+    const flight = instance.store.get("flights", "XY501");
+    const xml = createAidxMessage(
+      { id: "incoming-xml-delay", type: "delay", minutes: 45 },
+      flight,
+      instance.engine.clock.time,
+    );
+    assert.equal((await req("/feeds/aidx", { xml })).status, 200);
+    assert.equal(instance.store.get("flights", "XY501").delay, 45);
+    assert.equal(instance.store.all("feedEvents").at(-1).xml, xml);
+    instance.engine.reset();
+    assert.equal((await req("/flights?limit=1000")).data.total, 900);
+    assert.equal((await req("/campaigns", { name: "" })).status, 400);
+    const original = (await req("/campaigns")).data[0];
+    const payload = {
+      ...original,
+      name: "Lifecycle regression campaign",
+      delayTrigger: 0,
+    };
+    const created = await req("/campaigns", payload);
+    assert.equal(created.status, 201);
+    assert.equal(created.data.status, "pending");
+    const id = created.data.id;
+    assert.equal((await req(`/campaigns/${id}/approve`, {})).status, 400);
+    assert.equal(
+      (await req(`/campaigns/${id}/approve`, { brandSafe: true })).data.status,
+      "approved",
+    );
+    assert.equal(
+      (await req(`/campaigns/${id}/duplicate`, {})).data.status,
+      "pending",
+    );
+    assert.equal(
+      (await req(`/campaigns/${id}/reject`, { reason: "Review regression" }))
+        .data.status,
+      "rejected",
+    );
+    const slots = (await req("/recommendations/slots")).data;
+    const booking = {
+      screenId: slots[0].screenId,
+      timestamp: slots[0].timestamp,
+      campaignId: "C1",
+    };
+    assert.equal((await req("/inventory/book", booking)).status, 201);
+    assert.equal((await req("/inventory/book", booking)).status, 409);
+    const vendor = (
+      await req("/vendors", {
+        name: "Test vendor",
+        contact: "demo@example.test",
+      })
+    ).data;
+    assert.equal(
+      (await req("/vendors/" + vendor.id, { name: "Updated vendor" }, "PATCH"))
+        .data.name,
+      "Updated vendor",
+    );
+    assert.equal(
+      (await req("/vendors/" + vendor.id, {}, "DELETE")).status,
+      204,
+    );
+    assert.equal((await req("/zones/Z7", {}, "DELETE")).status, 409);
+    await req("/simulation/events", { type: "delay", minutes: 45 });
+    const d = (await req("/screens/S124/decision")).data;
+    const qr = await fetch(base + "/promos/" + d.promo.id + "/qr");
+    assert.equal(qr.headers.get("content-type").includes("svg"), true);
+    assert.ok((await qr.text()).includes("<svg"));
+    assert.equal(
+      (await req("/promos/" + d.promo.id + "/claim", {})).status,
+      200,
+    );
+    assert.equal(
+      (await req("/promos/" + d.promo.id + "/redeem", {})).status,
+      200,
+    );
+    assert.equal(
+      (await req("/promos/" + d.promo.id + "/redeem", {})).status,
+      409,
+    );
+    assert.equal(
+      (await req("/analytics/retailer?outletId=O1")).data.revenue,
+      24,
+    );
+    const creative = (
+      await req("/creatives/generate", {
+        brief: "Festive sweets, 20% off for families",
+      })
+    ).data;
+    assert.equal(creative.provider, "offline-template");
+    assert.ok(creative.headlineHi);
+    assert.ok(creative.offer.includes("20%"));
+    assert.equal(
+      (await req("/simulation/control", { speed: 500 })).status,
+      400,
+    );
+    assert.equal((await req("/openapi.json")).data.openapi, "3.1.0");
+  } finally {
+    server.closeAllConnections();
+    await new Promise((r) => server.close(r));
+    instance.close();
+  }
+});

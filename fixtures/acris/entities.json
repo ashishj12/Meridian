@@ -1,0 +1,740 @@
+[
+  {
+    "id": "urn:ngsi-ld:Terminal:T1",
+    "type": "Terminal",
+    "name": {
+      "type": "Property",
+      "value": "Domestic"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:Terminal:T2",
+    "type": "Terminal",
+    "name": {
+      "type": "Property",
+      "value": "International"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:Zone:Z1",
+    "type": "Zone",
+    "terminal": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Terminal:T1"
+    },
+    "name": {
+      "type": "Property",
+      "value": "Concourse 1"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:Checkpoint:CP0",
+    "type": "Checkpoint",
+    "zone": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z1"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:QueueMeasurement:Q0",
+    "type": "QueueMeasurement",
+    "zoneId": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z1"
+    },
+    "queue": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:PassengerQueue:PQ0"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld",
+    "Occupancy": {
+      "type": "Property",
+      "value": 18
+    },
+    "MeasurementTimePeriod": {
+      "type": "Property",
+      "value": {
+        "StartTime": "2026-10-14T14:10:00Z",
+        "EndTime": "2026-10-14T14:10:00Z"
+      }
+    }
+  },
+  {
+    "id": "urn:ngsi-ld:Zone:Z2",
+    "type": "Zone",
+    "terminal": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Terminal:T1"
+    },
+    "name": {
+      "type": "Property",
+      "value": "Concourse 2"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:Checkpoint:CP1",
+    "type": "Checkpoint",
+    "zone": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z2"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:QueueMeasurement:Q1",
+    "type": "QueueMeasurement",
+    "zoneId": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z2"
+    },
+    "queue": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:PassengerQueue:PQ1"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld",
+    "Occupancy": {
+      "type": "Property",
+      "value": 21
+    },
+    "MeasurementTimePeriod": {
+      "type": "Property",
+      "value": {
+        "StartTime": "2026-10-14T14:10:00Z",
+        "EndTime": "2026-10-14T14:10:00Z"
+      }
+    }
+  },
+  {
+    "id": "urn:ngsi-ld:Zone:Z3",
+    "type": "Zone",
+    "terminal": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Terminal:T1"
+    },
+    "name": {
+      "type": "Property",
+      "value": "Concourse 3"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:Checkpoint:CP2",
+    "type": "Checkpoint",
+    "zone": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z3"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:QueueMeasurement:Q2",
+    "type": "QueueMeasurement",
+    "zoneId": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z3"
+    },
+    "queue": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:PassengerQueue:PQ2"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld",
+    "Occupancy": {
+      "type": "Property",
+      "value": 24
+    },
+    "MeasurementTimePeriod": {
+      "type": "Property",
+      "value": {
+        "StartTime": "2026-10-14T14:10:00Z",
+        "EndTime": "2026-10-14T14:10:00Z"
+      }
+    }
+  },
+  {
+    "id": "urn:ngsi-ld:Zone:Z4",
+    "type": "Zone",
+    "terminal": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Terminal:T1"
+    },
+    "name": {
+      "type": "Property",
+      "value": "Concourse 4"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:Checkpoint:CP3",
+    "type": "Checkpoint",
+    "zone": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z4"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:QueueMeasurement:Q3",
+    "type": "QueueMeasurement",
+    "zoneId": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z4"
+    },
+    "queue": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:PassengerQueue:PQ3"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld",
+    "Occupancy": {
+      "type": "Property",
+      "value": 27
+    },
+    "MeasurementTimePeriod": {
+      "type": "Property",
+      "value": {
+        "StartTime": "2026-10-14T14:10:00Z",
+        "EndTime": "2026-10-14T14:10:00Z"
+      }
+    }
+  },
+  {
+    "id": "urn:ngsi-ld:Zone:Z5",
+    "type": "Zone",
+    "terminal": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Terminal:T1"
+    },
+    "name": {
+      "type": "Property",
+      "value": "Concourse 5"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:Checkpoint:CP4",
+    "type": "Checkpoint",
+    "zone": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z5"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:QueueMeasurement:Q4",
+    "type": "QueueMeasurement",
+    "zoneId": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z5"
+    },
+    "queue": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:PassengerQueue:PQ4"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld",
+    "Occupancy": {
+      "type": "Property",
+      "value": 30
+    },
+    "MeasurementTimePeriod": {
+      "type": "Property",
+      "value": {
+        "StartTime": "2026-10-14T14:10:00Z",
+        "EndTime": "2026-10-14T14:10:00Z"
+      }
+    }
+  },
+  {
+    "id": "urn:ngsi-ld:Zone:Z6",
+    "type": "Zone",
+    "terminal": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Terminal:T2"
+    },
+    "name": {
+      "type": "Property",
+      "value": "Concourse 6"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:Checkpoint:CP5",
+    "type": "Checkpoint",
+    "zone": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z6"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:QueueMeasurement:Q5",
+    "type": "QueueMeasurement",
+    "zoneId": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z6"
+    },
+    "queue": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:PassengerQueue:PQ5"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld",
+    "Occupancy": {
+      "type": "Property",
+      "value": 33
+    },
+    "MeasurementTimePeriod": {
+      "type": "Property",
+      "value": {
+        "StartTime": "2026-10-14T14:10:00Z",
+        "EndTime": "2026-10-14T14:10:00Z"
+      }
+    }
+  },
+  {
+    "id": "urn:ngsi-ld:Zone:Z7",
+    "type": "Zone",
+    "terminal": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Terminal:T2"
+    },
+    "name": {
+      "type": "Property",
+      "value": "Concourse 7"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:Checkpoint:CP6",
+    "type": "Checkpoint",
+    "zone": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z7"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:QueueMeasurement:Q6",
+    "type": "QueueMeasurement",
+    "zoneId": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z7"
+    },
+    "queue": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:PassengerQueue:PQ6"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld",
+    "Occupancy": {
+      "type": "Property",
+      "value": 36
+    },
+    "MeasurementTimePeriod": {
+      "type": "Property",
+      "value": {
+        "StartTime": "2026-10-14T14:10:00Z",
+        "EndTime": "2026-10-14T14:10:00Z"
+      }
+    }
+  },
+  {
+    "id": "urn:ngsi-ld:Zone:Z8",
+    "type": "Zone",
+    "terminal": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Terminal:T2"
+    },
+    "name": {
+      "type": "Property",
+      "value": "Concourse 8"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:Checkpoint:CP7",
+    "type": "Checkpoint",
+    "zone": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z8"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:QueueMeasurement:Q7",
+    "type": "QueueMeasurement",
+    "zoneId": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z8"
+    },
+    "queue": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:PassengerQueue:PQ7"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld",
+    "Occupancy": {
+      "type": "Property",
+      "value": 39
+    },
+    "MeasurementTimePeriod": {
+      "type": "Property",
+      "value": {
+        "StartTime": "2026-10-14T14:10:00Z",
+        "EndTime": "2026-10-14T14:10:00Z"
+      }
+    }
+  },
+  {
+    "id": "urn:ngsi-ld:Zone:Z9",
+    "type": "Zone",
+    "terminal": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Terminal:T2"
+    },
+    "name": {
+      "type": "Property",
+      "value": "Concourse 9"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:Checkpoint:CP8",
+    "type": "Checkpoint",
+    "zone": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z9"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:QueueMeasurement:Q8",
+    "type": "QueueMeasurement",
+    "zoneId": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z9"
+    },
+    "queue": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:PassengerQueue:PQ8"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld",
+    "Occupancy": {
+      "type": "Property",
+      "value": 42
+    },
+    "MeasurementTimePeriod": {
+      "type": "Property",
+      "value": {
+        "StartTime": "2026-10-14T14:10:00Z",
+        "EndTime": "2026-10-14T14:10:00Z"
+      }
+    }
+  },
+  {
+    "id": "urn:ngsi-ld:Zone:Z10",
+    "type": "Zone",
+    "terminal": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Terminal:T2"
+    },
+    "name": {
+      "type": "Property",
+      "value": "Concourse 10"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:Checkpoint:CP9",
+    "type": "Checkpoint",
+    "zone": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z10"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:QueueMeasurement:Q9",
+    "type": "QueueMeasurement",
+    "zoneId": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z10"
+    },
+    "queue": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:PassengerQueue:PQ9"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld",
+    "Occupancy": {
+      "type": "Property",
+      "value": 45
+    },
+    "MeasurementTimePeriod": {
+      "type": "Property",
+      "value": {
+        "StartTime": "2026-10-14T14:10:00Z",
+        "EndTime": "2026-10-14T14:10:00Z"
+      }
+    }
+  },
+  {
+    "id": "urn:ngsi-ld:Concourse:C0",
+    "type": "Concourse",
+    "name": {
+      "type": "Property",
+      "value": "Concourse 1"
+    },
+    "terminal": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Terminal:T1"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:PassengerQueue:PQ0",
+    "type": "PassengerQueue",
+    "zone": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z1"
+    },
+    "checkpoint": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Checkpoint:CP0"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:Concourse:C1",
+    "type": "Concourse",
+    "name": {
+      "type": "Property",
+      "value": "Concourse 2"
+    },
+    "terminal": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Terminal:T1"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:PassengerQueue:PQ1",
+    "type": "PassengerQueue",
+    "zone": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z2"
+    },
+    "checkpoint": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Checkpoint:CP1"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:Concourse:C2",
+    "type": "Concourse",
+    "name": {
+      "type": "Property",
+      "value": "Concourse 3"
+    },
+    "terminal": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Terminal:T1"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:PassengerQueue:PQ2",
+    "type": "PassengerQueue",
+    "zone": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z3"
+    },
+    "checkpoint": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Checkpoint:CP2"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:Concourse:C3",
+    "type": "Concourse",
+    "name": {
+      "type": "Property",
+      "value": "Concourse 4"
+    },
+    "terminal": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Terminal:T1"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:PassengerQueue:PQ3",
+    "type": "PassengerQueue",
+    "zone": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z4"
+    },
+    "checkpoint": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Checkpoint:CP3"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:Concourse:C4",
+    "type": "Concourse",
+    "name": {
+      "type": "Property",
+      "value": "Concourse 5"
+    },
+    "terminal": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Terminal:T1"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:PassengerQueue:PQ4",
+    "type": "PassengerQueue",
+    "zone": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z5"
+    },
+    "checkpoint": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Checkpoint:CP4"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:Concourse:C5",
+    "type": "Concourse",
+    "name": {
+      "type": "Property",
+      "value": "Concourse 6"
+    },
+    "terminal": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Terminal:T2"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:PassengerQueue:PQ5",
+    "type": "PassengerQueue",
+    "zone": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z6"
+    },
+    "checkpoint": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Checkpoint:CP5"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:Concourse:C6",
+    "type": "Concourse",
+    "name": {
+      "type": "Property",
+      "value": "Concourse 7"
+    },
+    "terminal": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Terminal:T2"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:PassengerQueue:PQ6",
+    "type": "PassengerQueue",
+    "zone": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z7"
+    },
+    "checkpoint": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Checkpoint:CP6"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:Concourse:C7",
+    "type": "Concourse",
+    "name": {
+      "type": "Property",
+      "value": "Concourse 8"
+    },
+    "terminal": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Terminal:T2"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:PassengerQueue:PQ7",
+    "type": "PassengerQueue",
+    "zone": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z8"
+    },
+    "checkpoint": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Checkpoint:CP7"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:Concourse:C8",
+    "type": "Concourse",
+    "name": {
+      "type": "Property",
+      "value": "Concourse 9"
+    },
+    "terminal": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Terminal:T2"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:PassengerQueue:PQ8",
+    "type": "PassengerQueue",
+    "zone": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z9"
+    },
+    "checkpoint": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Checkpoint:CP8"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:Concourse:C9",
+    "type": "Concourse",
+    "name": {
+      "type": "Property",
+      "value": "Concourse 10"
+    },
+    "terminal": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Terminal:T2"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  },
+  {
+    "id": "urn:ngsi-ld:PassengerQueue:PQ9",
+    "type": "PassengerQueue",
+    "zone": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Zone:Z10"
+    },
+    "checkpoint": {
+      "type": "Relationship",
+      "object": "urn:ngsi-ld:Checkpoint:CP9"
+    },
+    "@context": "https://smart-data-models.github.io/dataModel.ACRIS/context.jsonld"
+  }
+]

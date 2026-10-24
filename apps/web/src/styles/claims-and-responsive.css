@@ -1,0 +1,1140 @@
+/* claims and responsive */
+.claim-page {
+  --surface: #fff;
+  --text: #273142;
+  --border: #e4e8ed;
+  --hover: #f6f8fb;
+  --accent: #387fe9;
+  --muted: #8791a0;
+  min-height: 100vh;
+  background: #f1f3f7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  color: var(--text);
+}
+.claim-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  position: relative;
+  margin-bottom: 38px;
+}
+.claim-brand small {
+  position: absolute;
+  left: 44px;
+  top: 34px;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.claim-card {
+  background: white;
+  border: 1px solid #e5e9ef;
+  border-radius: 16px;
+  padding: 34px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 70px #18293b08;
+}
+.claim-card h1 {
+  font:
+    34px/1.14 Georgia,
+    serif;
+  letter-spacing: -0.045em;
+  margin: 25px 0;
+}
+.claim-offer {
+  padding: 22px;
+  background: #efe7db;
+  border: 1px solid #dcccb5;
+  color: #5c4d39;
+  border-radius: 8px;
+  font-size: 23px;
+  letter-spacing: -0.03em;
+}
+.claim-card > p {
+  font-size: 12px;
+  line-height: 1.9;
+  color: #8a929d;
+  margin-top: 20px;
+}
+.claim-code {
+  font:
+    20px/1.5 ui-monospace,
+    monospace;
+  letter-spacing: 0.2em;
+  text-align: center;
+  border: 1px dashed #bccadc;
+  border-radius: 8px;
+  padding: 17px;
+  margin: 25px 0;
+}
+.claim-card button {
+  width: 100%;
+  margin-bottom: 10px;
+  font-size: 12px;
+  min-height: 44px;
+}
+.claim-card .footnote {
+  font-size: 12px;
+}
+.claim-card a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: #6c8db8;
+  font-size: 12px;
+  margin-top: 22px;
+}
+.claim-page > span {
+  margin-top: 25px;
+  font-size: 12px;
+  color: #8b97a5;
+}
+.success-message {
+  padding: 13px;
+  background: #e9f7ee;
+  color: #47885f;
+  border-radius: 6px;
+  font-size: 12px;
+  margin-top: 15px;
+}
+.role-content {
+  min-width: 0;
+}
+.light .panel {
+  box-shadow: 0 2px 5px #17263e02;
+}
+main > .page-heading ~ * {
+  animation: appear 0.25s ease-out;
+}
+@keyframes appear {
+  from {
+    opacity: 0.2;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (min-width: 1700px) {
+  :root {
+    font-size: 14px;
+  }
+  .sidebar {
+    width: 248px;
+    padding: 30px 20px;
+  }
+  .workspace {
+    margin-left: 248px;
+  }
+  main {
+    padding: 35px 40px 0;
+  }
+  header,
+  .simulation {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+  .page-heading h1 {
+    font-size: 34px;
+  }
+  .page-heading p {
+    font-size: 12px;
+  }
+  .eyebrow {
+    font-size: 12px;
+  }
+  .kpi {
+    padding: 22px;
+  }
+  .kpi-top {
+    font-size: 12px;
+  }
+  .kpi-value {
+    font-size: 34px;
+    margin: 20px 0 15px;
+  }
+  .kpi-sub {
+    font-size: 12px;
+  }
+  .panel {
+    padding: 24px;
+  }
+  .panel-heading h2 {
+    font-size: 15px;
+  }
+  .map-panel {
+    padding: 24px 24px 0;
+  }
+  .terminal-map {
+    margin: 0 -24px;
+  }
+  .terminal-map svg {
+    max-height: 460px;
+  }
+  .pulse-highlight h3 {
+    font-size: 46px;
+  }
+  .pulse-highlight h3 small {
+    font-size: 12px;
+  }
+  .segment-bars > div > div,
+  .segment-bars b {
+    font-size: 12px;
+  }
+  .segment-bars {
+    gap: 15px;
+  }
+  .pulse-mini {
+    font-size: 12px;
+  }
+  .ai-note p {
+    font-size: 12px;
+  }
+  .activity-row b,
+  .feed-row b {
+    font-size: 12px;
+  }
+  .activity-row small {
+    font-size: 12px;
+  }
+  .activity-row {
+    padding: 15px 0;
+  }
+  .feed-row > div > span {
+    font-size: 12px;
+  }
+  .performance-strip {
+    font-size: 12px;
+  }
+  .performance-strip b {
+    font-size: 14px;
+  }
+  .badge {
+    font-size: 12px;
+  }
+  .map-toolbar {
+    font-size: 12px;
+  }
+  .map-bottom {
+    font-size: 12px;
+  }
+  .bottom-grid {
+    grid-template-columns: 1.17fr 1fr;
+  }
+  .overview-grid {
+    grid-template-columns: minmax(0, 2.4fr) minmax(300px, 1fr);
+  }
+  nav button {
+    font-size: 12px;
+  }
+  .airport {
+    font-size: 12px;
+  }
+  .brand {
+    font-size: 21px;
+  }
+  .simulation {
+    height: 60px;
+  }
+  .sim-label,
+  .breadcrumb {
+    font-size: 12px;
+  }
+  .sim-time {
+    font-size: 18px;
+  }
+  .sim-date {
+    font-size: 12px;
+  }
+  .header-actions .connection {
+    font-size: 12px;
+  }
+  .role-select select {
+    font-size: 12px;
+  }
+  .footnote {
+    font-size: 12px;
+  }
+  td {
+    font-size: 12px;
+  }
+  th {
+    font-size: 12px;
+  }
+  td b {
+    font-size: 12px;
+  }
+}
+@media (max-width: 1250px) {
+  .sidebar {
+    width: 190px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .workspace {
+    margin-left: 190px;
+  }
+  .brand {
+    font-size: 16px;
+  }
+  .brand small {
+    font-size: 12px;
+  }
+  .airport {
+    font-size: 12px;
+  }
+  .airport small {
+    font-size: 12px;
+  }
+  main {
+    padding: 24px 20px 0;
+  }
+  header,
+  .simulation {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .kpi-grid.six {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .kpi-grid.five {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .sim-date {
+    display: none;
+  }
+  .overview-grid {
+    grid-template-columns: minmax(0, 1.8fr) minmax(230px, 1fr);
+  }
+  .page-heading {
+    align-items: flex-start;
+  }
+  .page-heading p {
+    font-size: 12px;
+  }
+  .page-actions {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .date-chip {
+    display: none;
+  }
+  .panel {
+    padding: 17px;
+  }
+  .map-panel {
+    padding: 17px 17px 0;
+  }
+  .terminal-map {
+    margin: 0 -17px;
+  }
+  .map-toolbar > span {
+    font-size: 12px;
+  }
+  .map-bottom > span:last-child {
+    display: none;
+  }
+  .bottom-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .pulse-panel {
+    padding: 17px;
+  }
+  .simulation {
+    gap: 8px;
+  }
+  .sim-label .tiny-tag {
+    display: none;
+  }
+  .sim-controls {
+    gap: 7px;
+  }
+  .inject-controls .quick-delay {
+    display: none;
+  }
+  .header-actions {
+    gap: 13px;
+  }
+  .connection {
+    font-size: 12px;
+  }
+  .signage .ad-copy h2 {
+    font-size: 35px;
+  }
+  .recommendation > small {
+    min-height: 60px;
+  }
+  .split-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .split-grid .kpi-value {
+    font-size: 23px;
+  }
+  .split-grid .kpi {
+    padding: 12px;
+  }
+  .split-grid .kpi-sub {
+    font-size: 12px;
+  }
+  .inventory-legend {
+    gap: 10px;
+  }
+  .inventory-legend > span {
+    font-size: 12px;
+  }
+}
+@media (max-width: 980px) {
+  .sidebar {
+    width: 170px;
+  }
+  .workspace {
+    margin-left: 170px;
+  }
+  .brandmark {
+    width: 29px;
+    height: 32px;
+    font-size: 20px;
+  }
+  .brand {
+    font-size: 14px;
+    gap: 7px;
+  }
+  .airport {
+    padding: 7px 4px;
+    gap: 5px;
+  }
+  .airport-icon svg {
+    width: 15px;
+  }
+  .airport > svg {
+    display: none;
+  }
+  nav button {
+    font-size: 12px;
+    gap: 8px;
+    padding: 9px;
+  }
+  .nav-caption {
+    font-size: 12px;
+  }
+  .sidebar-link {
+    font-size: 12px;
+    padding: 8px;
+  }
+  .sidebar-link > .tiny-tag {
+    display: none;
+  }
+  .profile {
+    font-size: 12px;
+  }
+  .profile small {
+    font-size: 12px;
+  }
+  .network-state {
+    font-size: 12px;
+  }
+  .overview-grid,
+  .bottom-grid {
+    grid-template-columns: 1fr;
+  }
+  .pulse-panel .segment-bars {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .pulse-panel .ai-note {
+    margin-top: 20px;
+  }
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .kpi-grid.six {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .kpi-sub {
+    font-size: 12px;
+  }
+  .sim-label b {
+    display: none;
+  }
+  .simulation {
+    padding: 0 16px;
+  }
+  .sim-controls input {
+    width: 72px;
+    font-size: 12px;
+  }
+  .header-actions .connection {
+    display: none;
+  }
+  .page-heading h1 {
+    font-size: 26px;
+  }
+  .page-heading p {
+    line-height: 1.6;
+  }
+  .page-heading {
+    gap: 15px;
+  }
+  .two-columns {
+    gap: 15px;
+  }
+  .recommendations {
+    grid-template-columns: 1fr;
+  }
+  .recommendation {
+    display: block;
+  }
+  .recommendation > small {
+    min-height: 0;
+  }
+  .recommendation h3 {
+    margin-top: 15px;
+  }
+  .recommendation > button {
+    width: auto;
+  }
+  .approval-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .approval-checklist {
+    flex-wrap: wrap;
+  }
+  .approval-checklist label {
+    width: 100%;
+    margin-left: 35px;
+  }
+  .split-grid {
+    grid-template-columns: 1fr;
+  }
+  .passenger-workspace.compact {
+    position: static;
+  }
+  .split-grid .role-content {
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+  }
+  .welcome .brand {
+    margin-bottom: 50px;
+  }
+  .welcome-stats {
+    margin-top: 50px;
+  }
+  .hero-orb {
+    width: 130px;
+    flex-shrink: 0;
+  }
+  .hero-orb span {
+    font-size: 12px;
+  }
+  .retail-hero {
+    padding: 25px;
+  }
+  .retail-hero h2 {
+    font-size: 25px;
+  }
+  .toolbar .tabs {
+    gap: 0;
+  }
+  .tabs button {
+    font-size: 12px;
+  }
+  .role-select {
+    padding-left: 8px;
+  }
+  .role-select select {
+    max-width: 130px;
+    font-size: 12px;
+  }
+  footer {
+    flex-direction: column;
+    font-size: 12px;
+  }
+  .creative-library {
+    grid-template-columns: 1fr 1fr;
+  }
+  .builder-grid {
+    gap: 20px;
+  }
+}
+@media (max-width: 700px) {
+  .sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    padding: 14px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+    overflow: auto;
+  }
+  .sidebar .airport,
+  .sidebar .nav-caption,
+  .sidebar .sidebar-link,
+  .sidebar .sidebar-bottom,
+  .brand small {
+    display: none;
+  }
+  .sidebar .brand {
+    font-size: 13px;
+  }
+  .brandmark {
+    height: 28px;
+    width: 28px;
+    font-size: 18px;
+  }
+  nav {
+    flex-direction: row;
+    gap: 0;
+  }
+  nav button {
+    font-size: 12px;
+    white-space: nowrap;
+    padding: 7px;
+    min-height: 30px;
+  }
+  nav button svg {
+    width: 14px;
+  }
+  nav .count {
+    display: none;
+  }
+  .workspace {
+    margin-left: 0;
+  }
+  header {
+    height: 48px;
+    padding: 0 15px;
+  }
+  .breadcrumb {
+    font-size: 12px;
+    gap: 5px;
+  }
+  .header-actions {
+    gap: 8px;
+  }
+  .language {
+    font-size: 12px;
+  }
+  .role-select .avatar {
+    display: none;
+  }
+  .role-select select {
+    max-width: 140px;
+    font-size: 12px;
+  }
+  .simulation {
+    height: auto;
+    min-height: 53px;
+    padding: 9px 15px;
+    flex-wrap: wrap;
+    gap: 9px;
+  }
+  .sim-label {
+    display: none;
+  }
+  .sim-controls {
+    gap: 8px;
+  }
+  .speed button {
+    font-size: 12px;
+  }
+  .sim-time {
+    font-size: 14px;
+  }
+  .inject-controls button {
+    font-size: 12px;
+  }
+  .inject-controls .quick-delay {
+    display: none;
+  }
+  .simulation input {
+    width: 76px;
+  }
+  main {
+    padding: 22px 15px 0;
+  }
+  .page-heading {
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .page-heading h1 {
+    font-size: 26px;
+  }
+  .page-heading p {
+    max-width: 300px;
+    font-size: 12px;
+  }
+  .eyebrow {
+    font-size: 12px;
+  }
+  .page-actions {
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    justify-content: flex-start;
+    margin-top: 6px;
+  }
+  .page-actions > button {
+    font-size: 12px;
+  }
+  .kpi-grid,
+  .kpi-grid.six,
+  .kpi-grid.five {
+    gap: 9px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 16px;
+  }
+  .kpi {
+    padding: 15px;
+  }
+  .kpi-value {
+    font-size: 26px;
+    margin: 16px 0 10px;
+  }
+  .kpi-top {
+    font-size: 12px;
+  }
+  .kpi-sub {
+    font-size: 12px;
+  }
+  .panel {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .panel-heading {
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .panel-heading h2 {
+    font-size: 12px;
+  }
+  .map-panel {
+    padding: 16px 16px 0;
+  }
+  .terminal-map {
+    margin: 0 -16px;
+  }
+  .terminal-map svg {
+    min-height: 180px;
+  }
+  .map-toolbar {
+    font-size: 12px;
+  }
+  .map-toolbar > span {
+    font-size: 12px;
+    gap: 2px;
+  }
+  .map-toolbar .dot {
+    width: 3px;
+    height: 3px;
+  }
+  .map-bottom {
+    font-size: 12px;
+  }
+  .overview-grid,
+  .bottom-grid,
+  .two-columns {
+    gap: 16px;
+    grid-template-columns: 1fr;
+  }
+  .two-columns > .panel {
+    margin-bottom: 0;
+  }
+  .segment-bars > div > div {
+    font-size: 12px;
+  }
+  .segment-bars b {
+    font-size: 12px;
+  }
+  .pulse-panel .segment-bars {
+    gap: 15px;
+  }
+  .pulse-highlight h3 {
+    font-size: 38px;
+  }
+  .pulse-mini {
+    font-size: 12px;
+  }
+  .activity-row b {
+    font-size: 12px;
+    max-width: 220px;
+  }
+  .activity-row small {
+    font-size: 12px;
+  }
+  .activity-row .mono {
+    font-size: 12px;
+  }
+  .feed-row b {
+    font-size: 12px;
+  }
+  .feed-row b small {
+    font-size: 12px;
+  }
+  .feed-row > div > span {
+    font-size: 12px;
+  }
+  .performance-strip {
+    font-size: 12px;
+  }
+  .performance-strip b {
+    font-size: 12px;
+  }
+  .footnote {
+    font-size: 12px;
+  }
+  .toolbar {
+    font-size: 12px;
+  }
+  .form-grid {
+    gap: 0 12px;
+  }
+  .retail-hero {
+    padding: 23px;
+    gap: 10px;
+  }
+  .retail-hero h2 {
+    font-size: 25px;
+  }
+  .retail-hero p {
+    font-size: 12px;
+    max-width: 190px;
+  }
+  .hero-orb {
+    width: 75px;
+    height: 130px;
+  }
+  .hero-orb svg {
+    width: 40px;
+  }
+  .hero-orb span {
+    font-size: 12px;
+    text-align: center;
+  }
+  .hero-orb small {
+    display: none;
+  }
+  .retail-hero button {
+    font-size: 12px;
+  }
+  .detail-grid {
+    gap: 15px;
+  }
+  .detail-grid b {
+    font-size: 12px;
+  }
+  .recommendations {
+    gap: 12px;
+  }
+  .recommendation h3 {
+    font-size: 15px;
+  }
+  .recommendation > small {
+    font-size: 12px;
+  }
+  .approval-grid {
+    grid-template-columns: 1fr;
+  }
+  .approval-checklist label {
+    margin: 0;
+    gap: 9px;
+    font-size: 12px;
+  }
+  .approval-checklist {
+    gap: 10px;
+    padding: 16px;
+  }
+  .approval-checklist p {
+    font-size: 12px;
+  }
+  .creative-library {
+    grid-template-columns: 1fr 1fr;
+  }
+  .creative-library > div > b {
+    font-size: 12px;
+  }
+  .upload-tile {
+    font-size: 12px;
+    height: 160px;
+  }
+  .upload-tile input {
+    width: 120px;
+    font-size: 12px;
+  }
+  .ad-art.mini .ad-copy h2 {
+    font-size: 23px;
+  }
+  .ad-brand {
+    font-size: 12px;
+  }
+  .ad-brand small {
+    font-size: 12px;
+  }
+  .mini .ad-brand {
+    font-size: 12px;
+  }
+  .mini .ad-brand small {
+    font-size: 12px;
+  }
+  .ad-art.mini .ad-copy h2 {
+    font-size: 20px;
+  }
+  .mini .ad-copy p {
+    font-size: 12px;
+  }
+  .mini .ad-cta {
+    font-size: 12px;
+  }
+  .builder-grid {
+    grid-template-columns: 1fr;
+  }
+  .builder-grid > div:last-child {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+  .builder-grid .ad-art {
+    width: 50%;
+    flex-shrink: 0;
+  }
+  .builder-grid .match-preview {
+    padding: 0;
+  }
+  .builder-grid .match-preview b {
+    font-size: 12px;
+  }
+  .builder-grid .match-preview small {
+    font-size: 12px;
+  }
+  .builder-grid .match-preview > svg {
+    display: none;
+  }
+  .modal-backdrop {
+    padding: 12px;
+  }
+  .modal {
+    max-height: 95vh;
+    padding: 25px 20px;
+  }
+  .modal > h2 {
+    font-size: 24px;
+  }
+  .modal .stepper {
+    gap: 10px;
+  }
+  .stepper button {
+    font-size: 12px;
+    gap: 5px;
+  }
+  .stepper button > span {
+    height: 18px;
+    width: 18px;
+    font-size: 12px;
+  }
+  .modal .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .modal .detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .modal-close {
+    top: 12px;
+    right: 12px;
+  }
+  .modal .two-columns {
+    grid-template-columns: 1fr;
+  }
+  .toast {
+    font-size: 12px;
+    max-width: 92vw;
+    width: max-content;
+    bottom: 15px;
+    padding: 13px;
+  }
+  .signage-header {
+    padding: 12px;
+    font-size: 12px;
+  }
+  .signage-header b {
+    font-size: 12px;
+  }
+  .signage .ad-copy h2 {
+    font-size: 25px;
+  }
+  .signage .ad-brand small {
+    font-size: 12px;
+  }
+  .promo-block {
+    padding: 12px 15px;
+  }
+  .promo-block b {
+    font-size: 15px;
+  }
+  .promo-block > div > span {
+    font-size: 12px;
+  }
+  .promo-block small {
+    font-size: 12px;
+  }
+  .promo-block img {
+    height: 65px;
+    width: 65px;
+  }
+  .fids {
+    padding: 12px;
+    gap: 8px;
+  }
+  .fids > span {
+    display: none;
+  }
+  .fids > div {
+    font-size: 12px;
+    padding-left: 8px;
+    gap: 5px;
+  }
+  .fids b {
+    font-size: 12px;
+  }
+  .fids em {
+    font-size: 12px;
+  }
+  .signage-bottom {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+  .signage-bottom button {
+    font-size: 12px;
+  }
+  .signage.portrait .ad-copy h2 {
+    font-size: 35px;
+  }
+  .welcome {
+    padding: 35px;
+  }
+  .welcome h1 {
+    font-size: 54px;
+  }
+  .welcome .brand {
+    margin-bottom: 70px;
+  }
+  .welcome p {
+    font-size: 12px;
+  }
+  .welcome-stats {
+    gap: 35px;
+    font-size: 12px;
+  }
+  .welcome-stats b {
+    font-size: 25px;
+  }
+  .claim-page {
+    padding: 30px 15px;
+  }
+  .claim-card {
+    padding: 26px;
+  }
+  .claim-card h1 {
+    font-size: 32px;
+  }
+  .claim-card .claim-offer {
+    font-size: 21px;
+  }
+  .inventory-legend {
+    flex-wrap: wrap;
+  }
+  .pagination {
+    flex-wrap: wrap;
+    font-size: 12px;
+  }
+  .pagination button {
+    font-size: 12px;
+  }
+  .toolbar .tabs button {
+    font-size: 12px;
+    padding: 5px;
+  }
+  .screen-offline {
+    min-height: 250px;
+  }
+  .screen-offline h2 {
+    font-size: 17px;
+  }
+  .screen-offline p {
+    font-size: 12px;
+  }
+  footer {
+    font-size: 12px;
+    padding-bottom: 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *:before,
+  *:after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+.global-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+.global-search input {
+  border: 0;
+  background: transparent;
+  font-size: 12px;
+  width: 175px;
+  padding: 5px;
+}
+.kpi-sub {
+  font-size: 12px;
+}
+.panel .footnote {
+  font-size: 12px;
+}
+.segment-bars > div > div,
+.segment-bars b {
+  font-size: 12px;
+}
+.map-toolbar {
+  font-size: 12px;
+}
+.map-bottom {
+  font-size: 12px;
+}
+.activity-row b {
+  font-size: 12px;
+}
+.activity-row small {
+  font-size: 12px;
+}
+.feed-row > div > span {
+  font-size: 12px;
+}
+.sim-date {
+  font-size: 12px;
+}
+footer {
+  font-size: 12px;
+}
+@media (max-width: 1250px) {
+  .global-search {
+    display: none;
+  }
+}
