@@ -194,6 +194,8 @@ Flights, audience estimates, queue readings, forecasts, and revenue are all synt
 Treat every figure as an example, not an operational measurement or a revenue guarantee.
 
 The accelerated simulation is also a proof-of-concept workload: the current
-60× benchmark averages about 5 seconds per real-time tick with 180 screens, so
-that speed can fall behind wall-clock time. Docker Compose was not verifiable
-in the development environment when the Docker daemon was unavailable.
+60× benchmark averaged about 10 seconds per real-time tick with 180 screens in
+the latest run, so that speed can fall behind wall-clock time. The related
+browser test did not reach its expected simulated time within its 10-second
+window. Docker Compose was not verifiable in the development environment
+because the Docker daemon was unavailable.
