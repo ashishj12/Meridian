@@ -8,5 +8,6 @@ import "./design-system/products.css";
 import "./features/admin/admin.css";
 import "./design-system/meridian-brand.css";
 import "./design-system/admin-dark.css";
+import "./styles/responsive.css";
 
 createRoot(document.getElementById("root")!).render(<App />);
