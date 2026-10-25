@@ -208,7 +208,10 @@ const zodSchemas = {
       .strict(),
   ),
   "/api/creatives/generate": z.toJSONSchema(
-    z.object({ brief: z.string().min(5).max(1000) }),
+    z.object({
+      brief: z.string().min(5).max(1000),
+      campaignId: z.string().optional(),
+    }),
   ),
   "/api/inventory/book": z.toJSONSchema(
     z.object({
@@ -227,6 +230,66 @@ function responseSchema(url, method) {
       source: { type: "string", enum: ["mock-aidx", "vendor-api"] },
       sequence: { type: "integer" },
     });
+  if (url === "/api/creatives/generate")
+    return object(
+      {
+        provider: { type: "string", enum: ["offline-template", "vendor-api"] },
+        category: {
+          type: "string",
+          enum: [
+            "sweets",
+            "coffee",
+            "toys",
+            "perfume",
+            "beauty",
+            "fashion",
+            "food",
+          ],
+        },
+        product: { type: "string" },
+        audience: {
+          type: "string",
+          enum: ["families", "business", "couples", "students", "travellers"],
+        },
+        travelType: { type: "string", enum: ["domestic", "international"] },
+        secondLanguage: { type: "string", enum: ["hi", "ar", "fr"] },
+        headline: { type: "string" },
+        headlineSecond: { type: "string" },
+        offer: { type: "string" },
+        offerSecond: { type: "string" },
+        adPage: object(
+          {
+            version: { type: "integer", enum: [1] },
+            format: { type: "string", enum: ["landscape-screen"] },
+            templateId: { type: "string" },
+            category: { type: "string" },
+            brand: { type: "string" },
+            product: { type: "string" },
+            audience: { type: "string" },
+            travelType: { type: "string" },
+            background: { type: "string", pattern: "^#[0-9A-Fa-f]{6}$" },
+            headline: {
+              type: "object",
+              additionalProperties: { type: "string" },
+            },
+            body: {
+              type: "object",
+              additionalProperties: { type: "string" },
+            },
+            offer: {
+              type: "object",
+              additionalProperties: { type: "string" },
+            },
+            cta: {
+              type: "object",
+              additionalProperties: { type: "string" },
+            },
+          },
+          ["version", "format", "templateId", "headline", "body", "offer", "cta"],
+        ),
+      },
+      ["provider", "category", "secondLanguage", "headline", "adPage"],
+    );
   if (url === "/api/flights")
     return { $ref: "#/components/schemas/FlightPage" };
   if (url.startsWith("/api/flights/"))

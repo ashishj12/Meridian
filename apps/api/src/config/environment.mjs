@@ -7,6 +7,7 @@ const schema = z.object({
   AI_PROVIDER: z
     .enum(["offline-template", "vendor-api"])
     .default("offline-template"),
+  CREATIVE_SECOND_LANGUAGE: z.enum(["hi", "ar", "fr"]).default("hi"),
   AI_SCORER: z.enum(["offline-heuristic", "llm"]).default("offline-heuristic"),
   PUBLIC_BASE_URL: z.union([z.literal(""), z.url()]).default(""),
   VENDOR_SNAPSHOT_URL: z.url().optional(),

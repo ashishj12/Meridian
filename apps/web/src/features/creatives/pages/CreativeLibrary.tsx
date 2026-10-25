@@ -4,6 +4,7 @@ import { Plus, RefreshCw, Sparkles } from "lucide-react";
 import { Panel } from "../../../shared/components/Panel";
 import { Badge } from "../../../shared/components/StatusBadge";
 import { AdArt } from "../components/CampaignArtwork";
+import { MockScreenPreview } from "../components/MockScreenPreview";
 import { api } from "../../../shared/api/client";
 import { fmt, money, percent } from "../../../shared/lib/format";
 import type {
@@ -16,6 +17,7 @@ export function Library(context: WorkspaceContext) {
     "Festive sweets, 20% off, families flying domestic.",
   );
   const [creative, setCreative] = useState<ApiRecord | null>(null);
+  const [previewLanguage, setPreviewLanguage] = useState("en");
   const [historyRows, setHistoryRows] = useState<ApiRecord[]>([]);
   const [stored, setStored] = useState<ApiRecord[]>([]);
   useEffect(() => {
@@ -27,7 +29,7 @@ export function Library(context: WorkspaceContext) {
       <div className="two-columns">
         <Panel
           title={translateText("Creative studio")}
-          tag={translateText("OFFLINE ASSISTANT")}
+          tag={translateText("CREATIVE ASSISTANT")}
         >
           <p className="muted">
             {translateText(
@@ -43,7 +45,10 @@ export function Library(context: WorkspaceContext) {
           <button
             className="primary"
             onClick={() =>
-              context.action("/creatives/generate", { brief }).then(setCreative)
+              context.action("/creatives/generate", { brief }).then((result) => {
+                setCreative(result);
+                setPreviewLanguage("en");
+              })
             }
           >
             <Sparkles size={15} />
@@ -52,32 +57,106 @@ export function Library(context: WorkspaceContext) {
           {translateText(
             creative && (
               <div className="generated-editor">
-                <Badge value="Offline template provider" />
+                <Badge value={creative.label || "Creative provider"} />
                 <label>
                   {translateText("Headline")}
                   <input
                     value={creative.headline}
-                    onChange={(e) =>
-                      setCreative({ ...creative, headline: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const headline = e.target.value;
+                      setCreative({
+                        ...creative,
+                        headline,
+                        ...(creative.adPage
+                          ? {
+                              adPage: {
+                                ...creative.adPage,
+                                headline: {
+                                  ...creative.adPage.headline,
+                                  en: headline,
+                                },
+                              },
+                            }
+                          : {}),
+                      });
+                    }}
                   />
                 </label>
                 <label>
-                  {translateText("Hindi headline")}
+                  {translateText("Headline")} (
+                  {(creative.secondLanguage || "hi").toUpperCase()})
                   <input
-                    value={creative.headlineHi}
-                    onChange={(e) =>
-                      setCreative({ ...creative, headlineHi: e.target.value })
-                    }
+                    value={creative.headlineSecond || creative.headlineHi || ""}
+                    onChange={(e) => {
+                      const headlineSecond = e.target.value;
+                      const language = creative.secondLanguage || "hi";
+                      setCreative({
+                        ...creative,
+                        headlineSecond,
+                        ...(language === "hi"
+                          ? { headlineHi: headlineSecond }
+                          : {}),
+                        ...(creative.adPage
+                          ? {
+                              adPage: {
+                                ...creative.adPage,
+                                headline: {
+                                  ...creative.adPage.headline,
+                                  [language]: headlineSecond,
+                                },
+                              },
+                            }
+                          : {}),
+                      });
+                    }}
                   />
                 </label>
                 <label>
                   {translateText("Offer")}
                   <input
                     value={creative.offer}
-                    onChange={(e) =>
-                      setCreative({ ...creative, offer: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const offer = e.target.value;
+                      setCreative({
+                        ...creative,
+                        offer,
+                        ...(creative.adPage
+                          ? {
+                              adPage: {
+                                ...creative.adPage,
+                                offer: { ...creative.adPage.offer, en: offer },
+                              },
+                            }
+                          : {}),
+                      });
+                    }}
+                  />
+                </label>
+                <label>
+                  {translateText("Offer")} (
+                  {(creative.secondLanguage || "hi").toUpperCase()})
+                  <input
+                    value={creative.offerSecond || creative.offerHi || ""}
+                    onChange={(e) => {
+                      const offerSecond = e.target.value;
+                      const language = creative.secondLanguage || "hi";
+                      setCreative({
+                        ...creative,
+                        offerSecond,
+                        ...(language === "hi" ? { offerHi: offerSecond } : {}),
+                        ...(creative.adPage
+                          ? {
+                              adPage: {
+                                ...creative.adPage,
+                                offer: {
+                                  ...creative.adPage.offer,
+                                  [language]: offerSecond,
+                                },
+                              },
+                            }
+                          : {}),
+                      });
+                    }}
                   />
                 </label>
                 <button
@@ -100,20 +179,30 @@ export function Library(context: WorkspaceContext) {
           )}
         </Panel>
         <Panel title={translateText("Creative preview")}>
-          <AdArt
-            campaign={
+          <MockScreenPreview
+            creative={
               creative || {
-                headline: "Something sweet for the journey.",
-                offer: "20% off · a little moment for you",
+                category: "sweets",
+                headline: "A sweeter start to your journey.",
+                headlineHi: "आपके सफर की मीठी शुरुआत।",
+                secondLanguage: "hi",
+                offer: "20% off on Festive sweets",
+                offerHi: "Festive sweets पर 20% की छूट",
                 color: "#d8bea0",
+                cta: "Scan. Claim. Enjoy.",
               }
             }
-            lang={context.lang}
-            mini
+            screen={
+              context.state.screens.find(
+                (screen: ApiRecord) => screen.id === context.screen,
+              ) || context.state.screens[0]
+            }
+            language={previewLanguage}
+            onLanguageChange={setPreviewLanguage}
           />
           <p className="footnote">
             {translateText(
-              "Controlled offline template generation \u00B7 English + Hindi \u00B7 Editable copy",
+              "Offline template generation \u00B7 English + configured language \u00B7 Editable copy",
             )}
           </p>
         </Panel>

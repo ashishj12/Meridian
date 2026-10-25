@@ -23,6 +23,7 @@ The mock AODB adapter emits the 320 reference flights plus 578 deterministic gen
 
 - `FLIGHT_SOURCE=mock-aidx` is the default, offline mode. `FLIGHT_SOURCE=vendor-api` enables the vendor snapshot and event poller. It requires `VENDOR_SNAPSHOT_URL`; `VENDOR_EVENTS_URL` supplies events. `VENDOR_API_TOKEN` is optional.
 - `AI_PROVIDER=offline-template` is the default creative generator. `AI_PROVIDER=vendor-api` calls `AI_ENDPOINT` and optionally sends `AI_API_KEY`.
+- `CREATIVE_SECOND_LANGUAGE=hi|ar|fr` selects the offline and vendor creative's second output language; it defaults to Hindi (`hi`). The offline assistant parses category, discount, audience and domestic/international travel intent, then returns an editable `adPage` with localized headline, body, offer and call to action. The mock-screen preview can switch between English and the configured language.
 - `AI_SCORER=offline-heuristic` is the default, deterministic scorer with no network dependency. `AI_SCORER=llm` calls `AI_SCORER_ENDPOINT` and optionally sends `AI_SCORER_API_KEY`. The endpoint receives the crowd profile and eligible candidates; it must return a ranking, rationale and `generatedAt` timestamp.
 - Keep endpoint secrets out of source control. Configuration is validated during server startup in `config/environment.mjs`.
 

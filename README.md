@@ -109,7 +109,8 @@ Then open **http://localhost:3001**. If `dist/index.html` doesn't exist yet, `np
 **Environment variables.** By default, flight data and creative generation work offline, so you only need environment variables if you are:
 
 - changing the database location,
-- setting a public URL for QR links, or
+- setting a public URL for QR links,
+- choosing the creative assistant's second language (`CREATIVE_SECOND_LANGUAGE=hi|ar|fr`), or
 - connecting an external provider.
 
 See [`.env.example`](.env.example) for the available settings. For a normal local run, leave `PUBLIC_BASE_URL` unset so QR links use the laptop's LAN IP, or set it to an address that the scanning device can reach. The hosted demo sets this variable explicitly. Keep real credentials out of source control.

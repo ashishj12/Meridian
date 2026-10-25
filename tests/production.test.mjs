@@ -157,6 +157,7 @@ test("independent SQLite connections share commands, invalidate caches and elect
 });
 
 test("configured vendor providers make real HTTP requests and validate responses", async () => {
+  let creativeRequest;
   const server = http.createServer((request, response) => {
     assert.equal(request.headers.authorization, "Bearer local-test");
     if (request.url === "/flights")
@@ -166,16 +167,21 @@ test("configured vendor providers make real HTTP requests and validate responses
         ),
       );
     else {
-      response.setHeader("Content-Type", "application/json");
-      response.end(
-        JSON.stringify({
-          headline: "A better journey",
-          headlineHi: "एक बेहतर यात्रा",
-          offer: "15% off",
-          offerHi: "15% छूट",
-          category: "coffee",
-        }),
-      );
+      const chunks = [];
+      request.on("data", (chunk) => chunks.push(chunk));
+      request.on("end", () => {
+        creativeRequest = JSON.parse(Buffer.concat(chunks).toString());
+        response.setHeader("Content-Type", "application/json");
+        response.end(
+          JSON.stringify({
+            headline: "A better journey",
+            headlineSecond: "Un meilleur voyage",
+            offer: "15% off",
+            offerSecond: "15% de réduction",
+            category: "coffee",
+          }),
+        );
+      });
     }
   });
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
@@ -189,11 +195,13 @@ test("configured vendor providers make real HTTP requests and validate responses
     const provider = new VendorCreativeProvider({
       endpoint: base + "/creative",
       token: "local-test",
+      secondLanguage: "fr",
     });
-    assert.equal(
-      (await provider.generate("An airport coffee offer")).headline,
-      "A better journey",
-    );
+    const creative = await provider.generate("An airport coffee offer");
+    assert.equal(creative.headline, "A better journey");
+    assert.equal(creative.headlineSecond, "Un meilleur voyage");
+    assert.equal(creative.secondLanguage, "fr");
+    assert.deepEqual(creativeRequest.languages, ["en", "fr"]);
   } finally {
     await new Promise((resolve) => server.close(resolve));
   }

@@ -53,6 +53,14 @@
 .ad-copy p {
   font-size: clamp(8px, 1vw, 14px);
 }
+.ad-offer {
+  display: inline-flex;
+  border: 1px solid #68503855;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 600;
+}
 .ad-cta {
   display: flex;
   align-items: center;
@@ -127,6 +135,52 @@
   border-radius: 50%;
   transform: rotate(9deg);
 }
+.fashion-scene {
+  position: absolute;
+  right: 9%;
+  top: 14%;
+  width: 30%;
+  height: 72%;
+  display: grid;
+  place-items: center;
+  color: #3f3b32;
+  z-index: 1;
+}
+.fashion-scene > div {
+  position: absolute;
+  inset: 0 12%;
+  border-radius: 48% 48% 10% 10%;
+  background: linear-gradient(135deg, #f3ede0, #827f72 55%, #dfd4bf);
+  clip-path: polygon(30% 0, 70% 0, 100% 25%, 80% 40%, 75% 100%, 25% 100%, 20% 40%, 0 25%);
+  box-shadow: 0 20px 32px #433a2b30;
+}
+.fashion-scene span {
+  position: relative;
+  margin-top: 42%;
+  font-size: clamp(7px, 0.8vw, 11px);
+  letter-spacing: 0.17em;
+}
+.food-scene {
+  position: absolute;
+  right: 12%;
+  top: 15%;
+  width: 35%;
+  height: 70%;
+  display: grid;
+  place-items: center;
+}
+.food-plate {
+  width: 80%;
+  aspect-ratio: 1;
+  border: 8px solid #f5eee0;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 38% 39%, #bb6b38 0 8%, transparent 9%),
+    radial-gradient(ellipse at 62% 42%, #d1a653 0 12%, transparent 13%),
+    radial-gradient(ellipse at 48% 63%, #75854f 0 14%, transparent 15%),
+    #e8ddc5;
+  box-shadow: 0 14px 28px #51452e38;
+}
 .ad-art.mini {
   border-radius: 8px;
   aspect-ratio: 1.55;
@@ -196,6 +250,44 @@
 }
 .generated-editor .badge {
   margin-bottom: 20px;
+}
+.mock-screen-preview {
+  display: grid;
+  gap: 12px;
+}
+.mock-screen-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+}
+.mock-screen-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  letter-spacing: 0;
+}
+.mock-screen-toolbar select {
+  width: auto;
+  min-width: 60px;
+  padding: 5px 8px;
+}
+.mock-screen-bezel {
+  padding: 10px;
+  border: 5px solid #252722;
+  border-radius: 14px;
+  background: #252722;
+  box-shadow: 0 12px 28px #171a1422;
+}
+.mock-screen-bezel .ad-art {
+  border-radius: 5px;
+}
+.mock-screen-template {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
 }
 .approval-checklist {
   display: flex;

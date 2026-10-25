@@ -2,6 +2,29 @@ import { translateText } from "../../../i18n/index";
 import { ArrowUpRight, Plane } from "lucide-react";
 
 export function AdArt({ campaign: c, lang, mini = false }: any) {
+  const translated = lang === c.secondLanguage;
+  const headline =
+    translated && c.headlineSecond
+      ? c.headlineSecond
+      : lang === "hi" && c.headlineHi
+        ? c.headlineHi
+        : c.headline;
+  const offer =
+    translated && c.offerSecond
+      ? c.offerSecond
+      : lang === "hi" && c.offerHi
+        ? c.offerHi
+        : c.offer;
+  const copy =
+    translated && c.copySecond
+      ? c.copySecond
+      : c.copy || offer;
+  const cta =
+    translated && c.ctaSecond
+      ? c.ctaSecond
+      : lang === "hi"
+        ? "स्कैन करें। ऑफर पाएँ।"
+        : c.cta || "A little discovery. Before departure.";
   return (
     <div
       className={`ad-art ${mini ? "mini" : ""}`}
@@ -31,6 +54,17 @@ export function AdArt({ campaign: c, lang, mini = false }: any) {
                     </span>
                   </div>
                   <div className="coffee-saucer" />
+                </div>
+              ) : c.category === "fashion" ? (
+                <div className="fashion-scene">
+                  <div />
+                  <span>MERIDIAN EDIT</span>
+                </div>
+              ) : c.category === "food" ? (
+                <div className="food-scene">
+                  <div className="food-plate">
+                    <span />
+                  </div>
                 </div>
               ) : c.category === "sweets" ? (
                 <div className="gift-scene">
@@ -65,7 +99,8 @@ export function AdArt({ campaign: c, lang, mini = false }: any) {
       <div className="ad-copy">
         <span className="ad-brand">
           {translateText(
-            c.category === "information"
+            c.adPage?.brand ||
+              (c.category === "information"
               ? "MERIDIAN"
               : c.category === "sweets"
                 ? "SAFFRON"
@@ -77,22 +112,19 @@ export function AdArt({ campaign: c, lang, mini = false }: any) {
                       ? "JUNIPER × SKYLARK"
                       : c.category === "lounge"
                         ? "ALTITUDE"
-                        : "AURELIA",
+                        : "AURELIA"),
           )}
           <small>{translateText("THE ART OF A BETTER JOURNEY")}</small>
         </span>
         <h2>
-          {translateText(
-            lang === "hi" && c.headlineHi ? c.headlineHi : c.headline,
-          )}
+          {translateText(headline)}
         </h2>
-        <p>{translateText(c.offer)}</p>
+        <p>{translateText(copy)}</p>
+        {c.copy && (
+          <span className="ad-offer">{translateText(offer)}</span>
+        )}
         <span className="ad-cta">
-          {translateText(
-            lang === "hi"
-              ? "स्कैन करें। ऑफर पाएँ।"
-              : "A little discovery. Before departure.",
-          )}
+          {translateText(cta)}
           <ArrowUpRight size={15} />
         </span>
       </div>

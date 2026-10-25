@@ -21,6 +21,7 @@ import {
   LlmAiScorer,
   OfflineHeuristicScorer,
 } from "../apps/api/src/adapters/ai-scorers.mjs";
+import { OfflineCreativeProvider } from "../apps/api/src/adapters/creative-providers.mjs";
 
 const setup = (aiScorer) => {
   const store = new EntityRepository(":memory:");
@@ -76,6 +77,43 @@ test("AI scorers produce an offline ranking and validate the LLM request contrac
     ["C1", "C2"],
   );
   assert.deepEqual(answer.evidenceIds, ["F1"]);
+});
+
+test("offline creative assistant builds a localized ready ad from the brief", async () => {
+  const provider = new OfflineCreativeProvider({ secondLanguage: "fr" });
+  const creative = await provider.generate(
+    "Festive sweets, 20% off, families flying domestic",
+  );
+
+  assert.equal(creative.provider, "offline-template");
+  assert.equal(creative.category, "sweets");
+  assert.equal(creative.product, "Festive sweets");
+  assert.equal(creative.discount, "20%");
+  assert.equal(creative.audience, "families");
+  assert.equal(creative.travelType, "domestic");
+  assert.equal(creative.secondLanguage, "fr");
+  assert.ok(creative.headline);
+  assert.ok(creative.headlineSecond);
+  assert.match(creative.offer, /20%/);
+  assert.match(creative.offerSecond, /20%/);
+  assert.equal(creative.adPage.format, "landscape-screen");
+  assert.equal(creative.adPage.headline.fr, creative.headlineSecond);
+  assert.equal(creative.adPage.offer.fr, creative.offerSecond);
+  assert.match(creative.adPage.body.en, /families.*domestic/);
+
+  const categories = [
+    ["coffee", "coffee"],
+    ["toys", "toys"],
+    ["perfume", "fragrance"],
+    ["beauty", "skincare"],
+    ["fashion", "clothing"],
+    ["food", "snacks"],
+  ];
+  for (const [expected, term] of categories) {
+    const result = await provider.generate(`20% off ${term}`);
+    assert.equal(result.category, expected);
+    assert.ok(result.adPage.templateId);
+  }
 });
 
 test("async AI rankings pass through the decision gate before publication", async () => {

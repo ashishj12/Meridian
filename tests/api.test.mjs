@@ -145,10 +145,14 @@ test("HTTP campaign lifecycle, booking conflicts, QR rendering, validation and m
     );
     const creative = (
       await req("/creatives/generate", {
-        brief: "Festive sweets, 20% off for families",
+        brief: "Festive sweets, 20% off, families flying domestic",
       })
     ).data;
     assert.equal(creative.provider, "offline-template");
+    assert.equal(creative.category, "sweets");
+    assert.equal(creative.audience, "families");
+    assert.equal(creative.travelType, "domestic");
+    assert.equal(creative.adPage.format, "landscape-screen");
     assert.ok(creative.headlineHi);
     assert.ok(creative.offer.includes("20%"));
     assert.equal(
@@ -171,6 +175,11 @@ test("HTTP campaign lifecycle, booking conflicts, QR rendering, validation and m
       specification.paths["/api/campaigns"].post.requestBody.content[
         "application/json"
       ].schema.required.includes("zoneIds"),
+    );
+    assert.ok(
+      specification.paths["/api/creatives/generate"].post.responses["200"]
+        .content["application/json"].schema.properties.adPage.properties
+        .headline,
     );
     assert.deepEqual(
       specification.components.schemas.SimulationEvent.properties.type.enum,
