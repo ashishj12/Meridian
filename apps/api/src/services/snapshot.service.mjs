@@ -4,6 +4,7 @@ const iso = (timestamp) => new Date(timestamp).toISOString();
 /** Assemble the read model consumed by all five workspaces. */
 export function snapshotService(runtime) {
   const s = runtime.store;
+  const wallNow = Date.now();
   const screens = s.all("screens");
   const flights = s.all("flights");
   return {
@@ -36,20 +37,26 @@ export function snapshotService(runtime) {
     },
     decision: s.get("playlists", "S124")?.decision,
     decisions: s.all("decisions").slice(-20),
-    feeds: ["AODB", "AIDX", "ACRIS"].map((name) => ({
-      name,
-      adapter:
-        name === "AODB"
-          ? "aodb-csv"
-          : name === "AIDX"
-            ? "mock-aidx"
-            : "project-ngsi-ld",
-      status: runtime.clock.evidenceMode === "fresh" ? "healthy" : "degraded",
-      lastUpdate: s.get("feeds", name)?.lastUpdate || runtime.clock.time,
-      messagesPerMinute: (s.get("feeds", name)?.updates || []).filter(
-        (t) => t >= runtime.clock.time - 60000,
-      ).length,
-    })),
+    feeds: ["AODB", "AIDX", "ACRIS"].map((name) => {
+      const feed = s.get("feeds", name);
+      const lastUpdate = feed?.lastUpdate ?? null;
+      const age = lastUpdate === null ? Infinity : wallNow - lastUpdate;
+      return {
+        name,
+        adapter:
+          name === "AODB"
+            ? "mock-aodb-csv"
+            : name === "AIDX"
+              ? "mock-aidx"
+              : "mock-acris-ngsi-ld",
+        status: age < 60000 ? "healthy" : age < 180000 ? "degraded" : "offline",
+        lastUpdate,
+        lastMessageAt: lastUpdate,
+        messagesPerMinute: (feed?.updates || []).filter(
+          (timestamp) => timestamp >= wallNow - 60000,
+        ).length,
+      };
+    }),
     performance: {
       playlistMs: Math.round(runtime.playlistMs || 0),
       uptime: 99.94,

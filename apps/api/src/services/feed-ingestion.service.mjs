@@ -1,6 +1,9 @@
 import { parseAidx } from "../adapters/aidx.adapter.mjs";
 import { validateAidxXml } from "../adapters/aidx-validation.mjs";
-import { VendorFlightSource } from "../adapters/flight-source.adapters.mjs";
+import {
+  MockFlightSource,
+  VendorFlightSource,
+} from "../adapters/flight-source.adapters.mjs";
 
 /** Validate before locking, then resolve authoritative state inside the write transaction. */
 export async function ingestAidx(xml, runtime) {
@@ -120,6 +123,34 @@ export function startVendorIngestion(
   start();
   return () => {
     stopped = true;
+    clearTimeout(retry);
+    abort.abort();
+  };
+}
+
+/** Continuously ingest schema-validated mock AIDX notifications against simulation time. */
+export function startMockAidxIngestion(
+  runtime,
+  source = new MockFlightSource({ runtime }),
+) {
+  const abort = new AbortController();
+  let retry;
+  const run = async () => {
+    try {
+      for await (const event of source.stream({ signal: abort.signal })) {
+        if (abort.signal.aborted) return;
+        if (runtime.store.claimClockLease(runtime.coordinator.owner))
+          await ingestAidx(event.xml, runtime);
+      }
+    } catch (error) {
+      if (!abort.signal.aborted) {
+        console.error("Mock AIDX feed failed:", error.message);
+        retry = setTimeout(run, 1000);
+      }
+    }
+  };
+  void run();
+  return () => {
     clearTimeout(retry);
     abort.abort();
   };

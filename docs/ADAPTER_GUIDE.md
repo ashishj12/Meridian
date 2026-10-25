@@ -17,6 +17,8 @@ The contracts are intentionally small and implemented by the adapters in `apps/a
 
 These are structural JavaScript interfaces: conform by implementing the operations and return shapes. Existing implementations are `MockFlightSource` and `VendorFlightSource` in `flight-source.adapters.mjs`, `MockZoneSource` in `acris.adapter.mjs`, and `OfflineCreativeProvider` / `VendorCreativeProvider` in `creative-providers.mjs`.
 
+The mock AODB adapter emits the 320 reference flights plus 578 deterministic generated flights in the reference file's 33-column CSV format; seed data is normalized through `parseAodb`. Its AIDX stream continuously emits changing status, gate and delay notifications stamped with simulation time, and validates every message against the bundled IATA XSD before ingestion. Mock ACRIS occupancy follows daily peak periods and increases when a zone has delayed flights. Feed health counts actual ingestions in a rolling wall-clock minute and reports the last received message time.
+
 ## Configuration
 
 - `FLIGHT_SOURCE=mock-aidx` is the default, offline mode. `FLIGHT_SOURCE=vendor-api` enables the vendor snapshot and event poller. It requires `VENDOR_SNAPSHOT_URL`; `VENDOR_EVENTS_URL` supplies events. `VENDOR_API_TOKEN` is optional.

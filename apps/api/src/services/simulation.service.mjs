@@ -1,6 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { seed } from "../database/seed.mjs";
 import { createAidxMessage, parseAidx } from "../adapters/airport-sources.mjs";
+import {
+  createMockQueueMeasurement,
+  mockQueueCount,
+} from "../adapters/acris.adapter.mjs";
 
 const clamp = (value, minimum, maximum) =>
   Math.max(minimum, Math.min(maximum, value));
@@ -12,14 +16,15 @@ export function recordFeedService(runtime, name, received = true) {
     updates: [],
     lastUpdate: null,
   };
+  const receivedAt = Date.now();
   const updates = prior.updates.filter(
-    (t) => t >= runtime.clock.time - 60000 && t <= runtime.clock.time,
+    (timestamp) => timestamp >= receivedAt - 60000 && timestamp <= receivedAt,
   );
-  if (received) updates.push(runtime.clock.time);
+  if (received) updates.push(receivedAt);
   runtime.store.put("feeds", {
     id: name,
-    updates: updates.slice(-100),
-    lastUpdate: received ? runtime.clock.time : prior.lastUpdate,
+    updates,
+    lastUpdate: received ? receivedAt : prior.lastUpdate,
   });
 }
 export function emitService(runtime, type, detail = {}) {
@@ -100,8 +105,30 @@ export function refreshMockSourcesService(runtime, rewind = false) {
     if (rewind)
       for (const f of runtime.store.all("flights"))
         runtime.store.put("flights", { ...f, updatedAt: runtime.clock.time });
-    for (const q of runtime.store.all("queues"))
-      runtime.store.put("queues", { ...q, updatedAt: runtime.clock.time });
+    for (const queue of runtime.store.all("queues")) {
+      const baseCount = queue.baseCount ?? queue.count;
+      const delayMinutes = Math.max(
+        0,
+        ...runtime.store
+          .all("flights")
+          .filter((flight) => flight.zoneId === queue.zoneId)
+          .map((flight) => flight.delay || 0),
+      );
+      const measurement = createMockQueueMeasurement(
+        queue.zoneId,
+        mockQueueCount(baseCount, runtime.clock.time, delayMinutes),
+        runtime.clock.time,
+      );
+      runtime.store.put("queues", {
+        ...queue,
+        ...measurement,
+        count: measurement.count,
+        timestamp: measurement.observedAt,
+        updatedAt: runtime.clock.time,
+        source: "mock-acris",
+        baseCount,
+      });
+    }
     runtime.recordFeed("AODB");
     runtime.recordFeed("ACRIS");
   });
@@ -246,6 +273,7 @@ export function eventService(runtime, input) {
     }
     runtime.store.mark(id);
   });
+  if (input.type === "delay") runtime.refreshMockSources();
   runtime.evaluate(true, affectedZones.size ? [...affectedZones] : undefined);
   runtime.emit("flight.changed", { eventId: id, event: input });
   return { id, time: runtime.clock.time };

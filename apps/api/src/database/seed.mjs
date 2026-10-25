@@ -2,7 +2,7 @@ import fs from "node:fs";
 import {
   parseAodb,
   parseAcris,
-  referenceFile,
+  generateMockAodbCsv,
   toAodbRow,
 } from "../adapters/airport-sources.mjs";
 
@@ -368,19 +368,7 @@ export function seed(store) {
       festivalActive,
     });
   };
-  const refs = parseAodb(fs.readFileSync(referenceFile, "utf8"));
-  const destinations = [
-    "ADN",
-    "BWZ",
-    "CBP",
-    "CPZ",
-    "DMQ",
-    "BVQ",
-    "KST",
-    "NVQ",
-    "PVQ",
-    "SMG",
-  ];
+  const refs = parseAodb(generateMockAodbCsv(timeAt(14, 10)));
   const flights = refs.map((f, i) => {
     const zi = (f.terminal === "T2" ? 5 : 0) + (i % 5);
     const airlineId =
@@ -395,49 +383,6 @@ export function seed(store) {
       updatedAt: timeAt(14, 10),
     };
   });
-  for (let i = 320; i < 898; i++) {
-    const intl = i % 10 >= 5;
-    const zoneNumber = 1 + (i % 10);
-    const scheduled = timeAt(0) + ((i * 97 + zoneNumber * 137) % 1440) * 60000;
-    flights.push({
-      id: `F${i}`,
-      number: codes[i % 10] + (100 + i),
-      airlineId: codes[i % 10],
-      direction: i % 3 === 0 ? "A" : "D",
-      international: intl,
-      origin: "MQI",
-      destination: destinations[i % 10],
-      terminal: intl ? "T2" : "T1",
-      zoneId: `Z${1 + (i % 10)}`,
-      gate: String((i % 10) * 6 + 1 + (i % 6)),
-      scheduled: iso(scheduled),
-      estimated: iso(scheduled),
-      pax: 100 + ((i * 37) % 180),
-      seats: 300,
-      aircraft: i % 2 ? "A320" : "B38M",
-      status: "Scheduled",
-      delay: 0,
-      profile: profileForFlight(
-        {
-          origin: "MQI",
-          destination: destinations[i % 10],
-          international: intl,
-          scheduled: iso(scheduled),
-          aircraft: i % 2 ? "A320" : "B38M",
-          seats: 300,
-          pax: 100 + ((i * 37) % 180),
-        },
-        i,
-        `Z${zoneNumber}`,
-      ),
-      source: {
-        adapter: "seed-aodb",
-        timestamp: iso(timeAt(14, 10)),
-        reference: `F${i}`,
-      },
-      updatedAt: timeAt(14, 10),
-    });
-  }
   flights.push({
     id: "XY501",
     number: "XY501",
@@ -639,7 +584,7 @@ export function seed(store) {
             ? { family: 1 }
             : { business: 0.7, premium: 0.3 },
       affinity:
-        i === 0 ? 0.71 / 0.648 : i === 1 ? 0.49 / 0.31 : i === 2 ? 0.58 : 1,
+        i === 0 ? 0.71 / 0.648 : i === 1 ? 0.49 / 0.31 : i === 2 ? 0.55 : 1,
       minimumCrowd: 0,
       minimumDwell: 0,
       internationalOnly: false,
@@ -678,11 +623,15 @@ export function seed(store) {
   const perfume = store.get("campaigns", "C1");
   store.put("campaigns", {
     ...perfume,
-    performance: 0.203333333333,
+    performance: 0.103333333333,
     priority: 0.25,
   });
   const toy = store.get("campaigns", "C2");
-  store.put("campaigns", { ...toy, priority: 0.36 });
+  store.put("campaigns", {
+    ...toy,
+    performance: toy.performance - 0.1,
+    priority: 0.36,
+  });
   const lounge = store.get("campaigns", "C3");
   store.put("campaigns", { ...lounge, performance: 0, priority: 0 });
   store.put("incidents", {

@@ -1,24 +1,68 @@
+import { randomUUID } from "node:crypto";
 import { requestText } from "./http-client.mjs";
 import { setTimeout as delay } from "node:timers/promises";
 import { validateAidxXml } from "./aidx-validation.mjs";
-import fs from "node:fs";
-import { parseAodb, referenceFile } from "./aodb.adapter.mjs";
-import { parseAidx } from "./aidx.adapter.mjs";
+import { generateMockAodbCsv, parseAodb } from "./aodb.adapter.mjs";
+import { createAidxMessage, parseAidx } from "./aidx.adapter.mjs";
 
 export class MockFlightSource {
-  async getSnapshot() {
-    return parseAodb(fs.readFileSync(referenceFile, "utf8"));
+  constructor({ runtime, intervalMs = 1000 } = {}) {
+    this.runtime = runtime;
+    this.intervalMs = intervalMs;
   }
-  async *stream() {
-    yield parseAidx(
-      fs.readFileSync(
-        new URL(
-          "../../../../fixtures/reference/AIDX_FlightLegNotifRQ_XH960_arrival_ILLUSTRATIVE.xml",
-          import.meta.url,
-        ),
-        "utf8",
-      ),
-    );
+
+  async getSnapshot() {
+    return parseAodb(generateMockAodbCsv());
+  }
+
+  async *stream({ signal } = {}) {
+    const events = [
+      "gate-change",
+      "delay",
+      "boarding",
+      "gate-change",
+      "departure",
+      "arrival",
+    ];
+    let sequence = 0;
+    let fallbackTime = Date.parse("2026-10-14T14:10:00Z");
+    while (!signal?.aborted) {
+      const flights =
+        this.runtime?.store.all("flights") || (await this.getSnapshot());
+      const eligible = flights.filter(
+        (flight) => !["XY501", "ZQ88"].includes(flight.id),
+      );
+      if (!eligible.length) throw new Error("Mock AIDX requires known flights");
+      const flight = eligible[sequence % eligible.length];
+      const type = events[sequence % events.length];
+      const timestamp = this.runtime?.engine.clock.time ?? fallbackTime;
+      const gates = this.runtime?.store
+        .all("gates")
+        .filter(
+          (gate) =>
+            gate.terminal === flight.terminal && gate.id !== flight.gate,
+        );
+      const gate =
+        type === "gate-change"
+          ? (gates?.[sequence % gates.length]?.id ??
+            String((Number(flight.gate) % 60) + 1))
+          : flight.gate;
+      const xml = createAidxMessage(
+        {
+          id: `M${randomUUID().replaceAll("-", "").slice(0, 31)}`,
+          type,
+          minutes: 5 + (sequence % 6) * 5,
+          gate,
+        },
+        flight,
+        timestamp,
+      );
+      await validateAidxXml(xml);
+      yield { ...parseAidx(xml), xml };
+      sequence++;
+      fallbackTime += this.intervalMs;
+      await delay(this.intervalMs, undefined, { signal });
+    }
   }
 }
 export class VendorFlightSource {

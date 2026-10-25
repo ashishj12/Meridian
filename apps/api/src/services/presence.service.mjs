@@ -137,11 +137,7 @@ export function presenceService(
       id: f.id,
       source: f.source.adapter,
       originalTimestamp: f.source.timestamp,
-      receivedAt:
-        Math.max(
-          f.updatedAt || 0,
-          runtime.store.get("feeds", "AODB")?.lastUpdate || 0,
-        ) || runtime.clock.time,
+      receivedAt: f.updatedAt || runtime.clock.time,
     })),
     queueEvidence: queue
       ? {

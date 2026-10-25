@@ -10,9 +10,12 @@ import {
   referenceFile,
   MockFlightSource,
   MockZoneSource,
+  createMockQueueMeasurement,
+  mockQueueCount,
 } from "../apps/api/src/adapters/airport-sources.mjs";
 import { profile, timeAt } from "../apps/api/src/database/seed.mjs";
 import { validateProposal } from "../apps/api/src/models/decision.model.mjs";
+import { validateAidxXml } from "../apps/api/src/adapters/aidx-validation.mjs";
 import {
   LlmAiScorer,
   OfflineHeuristicScorer,
@@ -245,12 +248,51 @@ test("ACRIS fixtures normalize property and relationship wrappers; source interf
   assert.equal(entities.find((e) => e.id === "Q6").count, 36);
 
   assert.throws(() => parseAcris([{}]));
-  assert.equal((await new MockFlightSource().getSnapshot()).length, 320);
+  const flights = await new MockFlightSource().getSnapshot();
+  assert.equal(flights.length, 898);
+  assert.equal(Object.keys(flights[320].source.raw).length, 33);
+  assert.equal(flights[320].id, "F320");
 
+  const abort = new AbortController();
   const events = [];
-  for await (const event of new MockFlightSource().stream()) events.push(event);
+  for await (const event of new MockFlightSource({ intervalMs: 0 }).stream({
+    signal: abort.signal,
+  })) {
+    events.push(event);
+    if (events.length === 3) {
+      abort.abort();
+      break;
+    }
+  }
+  assert.deepEqual(
+    events.map((event) => event.status),
+    ["SCH", "DLY", "BRD"],
+  );
+  await Promise.all(events.map((event) => validateAidxXml(event.xml)));
+});
 
-  assert.equal(events[0].number, "XH960");
+test("mock ACRIS queue counts follow peak demand and rise after a flight delay", () => {
+  const offPeak = mockQueueCount(36, timeAt(14, 10));
+  const peak = mockQueueCount(36, timeAt(8, 10));
+  const delayed = mockQueueCount(36, timeAt(14, 10), 45);
+  assert.ok(peak > offPeak);
+  assert.ok(delayed > offPeak);
+  assert.equal(
+    createMockQueueMeasurement("Z7", delayed, timeAt(14, 10)).count,
+    delayed,
+  );
+
+  const { store, engine } = setup();
+  try {
+    const previous = store.get("queues", "Q6").count;
+    engine.event({ type: "delay", flightId: "XY501", minutes: 45 });
+    assert.ok(store.get("queues", "Q6").count > previous);
+    const feeds = engine.snapshot().feeds;
+    assert.ok(feeds.find((feed) => feed.name === "AIDX").messagesPerMinute > 0);
+    assert.ok(feeds.find((feed) => feed.name === "ACRIS").lastMessageAt);
+  } finally {
+    store.close();
+  }
 });
 
 test("seed has required counts, thirty history days, valid gate/zone/terminal relationships", () => {
