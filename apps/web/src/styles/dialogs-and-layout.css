@@ -1,4 +1,3 @@
-/* dialogs and layout */
 .split-grid {
   display: grid;
   grid-template-columns: minmax(300px, 0.95fr) minmax(0, 1.05fr);

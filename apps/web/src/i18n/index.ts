@@ -7,6 +7,7 @@ export function setLocale(language: string) {
 export function getLocale() {
   return locale;
 }
+
 /** Translate presentation text only. Objects, numbers, IDs and business-rule values are untouched. */
 export function translateText<T>(value: T): T | string {
   if (locale !== "hi" || typeof value !== "string") return value;

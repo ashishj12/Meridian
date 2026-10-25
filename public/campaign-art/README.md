@@ -8,8 +8,6 @@ Three original local product visuals generated for this implementation using the
 | `little-orbit-postcards.png`  | Ivory travel-journal flat lay, forest green serif editorial composition    |
 | `aurelia-atelier.png`         | Amber fragrance, travertine, architectural light and restrained typography |
 
-The UI uses locally bundled Instrument Sans Variable, licensed under SIL Open Font License 1.1. The complete license is in `Instrument-Sans-OFL.txt`. The editorial alternate uses the system serif fallback stack.
-
 ## Prompt set
 
 ### Little Orbit — Expedition

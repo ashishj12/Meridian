@@ -15,6 +15,7 @@ export interface AirportState extends ApiRecord {
   partners: ApiRecord[];
   presence: Record<string, ApiRecord>;
 }
+
 /** Explicit dependencies available to a role page. Pages never create their own simulation clock. */
 export interface WorkspaceContext {
   state: AirportState;
@@ -33,6 +34,7 @@ export interface WorkspaceContext {
   setModal: Dispatch<SetStateAction<ApiRecord | null>>;
   setPage: Dispatch<SetStateAction<string>>;
 }
+
 export interface WorkspaceShellProps extends WorkspaceContext {
   role: string;
   page: string;

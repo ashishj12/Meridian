@@ -13,10 +13,12 @@ import {
 } from "../apps/api/src/adapters/airport-sources.mjs";
 import { timeAt } from "../apps/api/src/database/seed.mjs";
 import { validateProposal } from "../apps/api/src/models/decision.model.mjs";
+
 const setup = () => {
   const store = new EntityRepository(":memory:");
   return { store, engine: new AirportEngine(store) };
 };
+
 test("independent validator rejects invented scores and contradictory stored evidence", () => {
   const { store, engine } = setup();
   try {
@@ -31,8 +33,10 @@ test("independent validator rejects invented scores and contradictory stored evi
         (id) => store.get("flights", id),
       ).some((s) => s.includes("reproduced")),
     );
+
     const f = store.get("flights", "XY501");
     store.put("flights", { ...f, pax: 9999 });
+
     assert.ok(
       validateProposal(winner, d.presence, engine.clock, (id) =>
         store.get("flights", id),
@@ -42,18 +46,22 @@ test("independent validator rejects invented scores and contradictory stored evi
     store.close();
   }
 });
+
 test("one broadcast QR issues distinct single-use claim tokens without collecting identity", () => {
   const { store, engine } = setup();
   try {
     engine.event({ type: "delay", minutes: 45 });
     const root = store.get("playlists", "S124").decision.promo.id;
+
     const a = engine.promo(root, "scan", { issue: true }),
       b = engine.promo(root, "scan", { issue: true });
     assert.notEqual(a.id, b.id);
+
     assert.equal(a.offerToken, root);
     for (const p of [a, b]) {
       engine.promo(p.id, "claim");
       engine.promo(p.id, "redeem");
+
       assert.throws(() => engine.promo(p.id, "redeem"), /Already redeemed/);
     }
     assert.equal(engine.metrics("O1").redemptions, 2);
@@ -62,42 +70,57 @@ test("one broadcast QR issues distinct single-use claim tokens without collectin
     store.close();
   }
 });
+
 test("reference CSV maps all 320 records and preserves all 33 raw fields, A-CDM and linked references", () => {
   const flights = parseAodb(fs.readFileSync(referenceFile, "utf8"));
   assert.equal(flights.length, 320);
+
   assert.equal(Object.keys(flights[0].source.raw).length, 33);
   const f = flights.find((f) => f.id === "100180");
   assert.equal(f.number, "XH960");
+
   assert.equal(f.pax, 224);
   assert.equal(f.actual, "2026-10-14T00:18:00Z");
+
   assert.equal(f.linkedFlightId, "100181");
   assert.ok(flights.some((f) => f.tobt));
 });
+
 test("AIDX sample parses text-bearing attributes and rejects malformed XML and external entities", () => {
   const xml = fs.readFileSync(
     "fixtures/reference/AIDX_FlightLegNotifRQ_XH960_arrival_ILLUSTRATIVE.xml",
     "utf8",
   );
+
   const e = parseAidx(xml);
   assert.equal(e.number, "XH960");
+
   assert.equal(e.status, "ARR");
   assert.equal(e.gate, "C38");
   assert.equal(e.id, "MQI-AODB-000184533");
+
   assert.equal(e.times.length, 3);
   assert.throws(() => parseAidx("<oops>"));
+
   assert.throws(() => parseAidx("<!DOCTYPE evil><x/>"));
 });
+
 test("ACRIS fixtures normalize property and relationship wrappers; source interfaces are stream-capable", async () => {
   const source = new MockZoneSource();
   const entities = await source.getZones();
+
   assert.ok(entities.find((e) => e.type === "Checkpoint"));
   assert.equal(entities.find((e) => e.id === "Q6").count, 36);
+
   assert.throws(() => parseAcris([{}]));
   assert.equal((await new MockFlightSource().getSnapshot()).length, 320);
+
   const events = [];
   for await (const event of new MockFlightSource().stream()) events.push(event);
+
   assert.equal(events[0].number, "XH960");
 });
+
 test("seed has required counts, thirty history days, valid gate/zone/terminal relationships", () => {
   const { store } = setup();
   try {
@@ -109,15 +132,19 @@ test("seed has required counts, thirty history days, valid gate/zone/terminal re
       campaigns: 25,
     }))
       assert.equal(store.all(k).length, n, k);
+
     for (const screen of store.all("screens")) {
       const zone = store.get("zones", screen.zoneId);
       assert.equal(zone.terminal, screen.terminal);
+
       assert.equal(store.get("gates", screen.gate).zoneId, screen.zoneId);
     }
     for (const flight of store.all("flights")) {
       assert.ok(store.get("airlines", flight.airlineId));
+
       assert.equal(store.get("gates", flight.gate).zoneId, flight.zoneId);
       assert.equal(store.get("zones", flight.zoneId).terminal, flight.terminal);
+
       assert.ok(flight.pax <= flight.seats);
     }
     assert.equal(
@@ -130,11 +157,13 @@ test("seed has required counts, thirty history days, valid gate/zone/terminal re
     store.close();
   }
 });
+
 test("flight-delay cascade changes presence, scores and delivered creative under two seconds", () => {
   const { store, engine } = setup();
   try {
     assert.equal(store.get("playlists", "S124").decision.campaignId, "C2");
     const baseline = engine.presences.Z7.count;
+
     const start = performance.now();
     engine.event({
       id: "example-delay",
@@ -142,12 +171,15 @@ test("flight-delay cascade changes presence, scores and delivered creative under
       flightId: "XY501",
       minutes: 45,
     });
+
     const elapsed = performance.now() - start;
     const p = engine.presences.Z7,
       d = store.get("playlists", "S124").decision;
     assert.equal(store.get("flights", "XY501").status, "Delayed");
     assert.equal(p.count, 420);
+
     assert.ok(p.count > baseline);
+
     assert.equal(p.dwell, 52);
     assert.deepEqual(
       [
@@ -167,12 +199,15 @@ test("flight-delay cascade changes presence, scores and delivered creative under
       assert.equal(d.candidates.find((c) => c.id === id).score, score);
     assert.equal(d.candidates.find((c) => c.id === "C3").eligible, false);
     assert.ok(elapsed < 2000, `cascade ${elapsed}ms`);
+
     assert.ok(store.get("campaigns", "G-XY501"));
+
     console.log(`Delay cascade: ${elapsed.toFixed(1)} ms`);
   } finally {
     store.close();
   }
 });
+
 test("all evidence failure modes reject proposals and persist a safe fallback", () => {
   const { store, engine } = setup();
   try {
@@ -180,6 +215,7 @@ test("all evidence failure modes reject proposals and persist a safe fallback", 
     for (const mode of ["missing", "stale", "contradictory", "unverifiable"]) {
       engine.event({ type: "evidence", mode });
       const d = store.get("playlists", "S124").decision;
+
       assert.equal(d.campaignId, null);
       assert.match(d.fallback, new RegExp(mode));
       assert.equal(d.validated, false);
@@ -190,10 +226,12 @@ test("all evidence failure modes reject proposals and persist a safe fallback", 
     store.close();
   }
 });
+
 test("hard rules exclude stock, approval, placement, daily caps, frequency and safety failures", () => {
   const { store, engine } = setup();
   try {
     engine.event({ type: "delay", minutes: 45 });
+
     const original = store.get("campaigns", "C1");
     for (const patch of [
       { stock: false },
@@ -211,6 +249,7 @@ test("hard rules exclude stock, approval, placement, daily caps, frequency and s
       engine.evaluate(false);
       assert.notEqual(store.get("playlists", "S124").decision.campaignId, "C1");
     }
+
     store.put("campaigns", original);
     engine.evaluate(false);
     assert.equal(store.get("playlists", "S124").decision.campaignId, "C1");
@@ -218,70 +257,90 @@ test("hard rules exclude stock, approval, placement, daily caps, frequency and s
     store.close();
   }
 });
+
 test("promotions distinguish scans, claims, redemption, family sharing, duplicate rejection and expiry", () => {
   const { store, engine } = setup();
   try {
     engine.event({ type: "delay", minutes: 45 });
     const token = store.get("playlists", "S124").decision.promo.id;
     assert.match(token, /^[0-9a-f]{48}$/);
+
     assert.throws(() => engine.promo(token, "redeem"), /Claim/);
     engine.promo(token, "scan");
+
     assert.equal(engine.metrics("O1").revenue, 0);
     engine.promo(token, "claim");
+
     assert.equal(engine.metrics("O1").redemptions, 0);
     engine.promo(token, "redeem");
     const m = engine.metrics("O1");
     assert.equal(m.scans, 1);
     assert.equal(m.claims, 1);
+
     assert.equal(m.redemptions, 1);
     assert.equal(m.revenue, 24);
     assert.throws(() => engine.promo(token, "redeem"), /Already redeemed/);
+
     const child = engine.promo(token, "share");
     assert.equal(child.parentToken, token);
     assert.equal(child.expiry, store.get("promos", token).expiry);
+
     assert.throws(() => engine.promo(token, "share"), /already issued/);
     assert.throws(() => engine.promo(child.id, "share"), /already issued/);
+
     engine.clock.time = child.expiry;
+
     assert.throws(() => engine.promo(child.id, "claim"), /expired/);
     assert.throws(() => engine.promo("forged", "scan"), /not found/);
   } finally {
     store.close();
   }
 });
+
 test("idempotency prevents replayed feed effects and reset restores deterministic scenario", () => {
   const { store, engine } = setup();
   try {
     engine.event({ id: "same", type: "delay", minutes: 45 });
     const n = store.all("campaigns").length;
     const seq = engine.clock.sequence;
+
     assert.equal(
       engine.event({ id: "same", type: "delay", minutes: 45 }).duplicate,
       true,
     );
     assert.equal(engine.clock.sequence, seq);
+
     assert.equal(store.all("campaigns").length, n);
+
     engine.reset();
     assert.equal(engine.clock.time, timeAt(14, 10));
+
     assert.equal(store.get("flights", "XY501").delay, 0);
     assert.equal(store.get("playlists", "S124").decision.campaignId, "C2");
   } finally {
     store.close();
   }
 });
+
 test("simulation speeds, pause, gate change and offline incident use one shared clock", () => {
   const { store, engine } = setup();
   try {
     engine.control({ action: "play", speed: 60 });
     engine.tick();
     assert.equal(engine.clock.time, timeAt(14, 11));
+
     engine.control({ action: "pause" });
     engine.tick();
+
     assert.equal(engine.clock.time, timeAt(14, 11));
     engine.event({ type: "gate-change", flightId: "XY501", gate: "48" });
+
     assert.equal(store.get("flights", "XY501").zoneId, "Z8");
     engine.event({ type: "screen-offline", screenId: "S124" });
+
     assert.equal(store.get("playlists", "S124").decision.campaignId, null);
     engine.control({ action: "play", speed: 60 });
+
     for (let i = 0; i < 6; i++) engine.tick();
     assert.ok(store.all("incidents").some((i) => i.screenId === "S124"));
     assert.equal(store.get("playlists", "S124").decision.delivered, false);
@@ -289,31 +348,38 @@ test("simulation speeds, pause, gate change and offline incident use one shared 
     store.close();
   }
 });
+
 test("booking-aware slot recommendations rank three distinct available slots", () => {
   const { store, engine } = setup();
   try {
     const recs = engine.recommendations("C1");
     assert.equal(recs.length, 3);
+
     assert.equal(new Set(recs.map((r) => r.id)).size, 3);
     const r = recs[0];
     store.put("bookings", { ...r, id: "reserved" });
+
     assert.ok(!engine.recommendations("C1").some((x) => x.id === r.id));
   } finally {
     store.close();
   }
 });
+
 test("SSE subscribers observe the same version after event, redemption and reset", () => {
   const { store, engine } = setup();
   try {
     const a = [],
       b = [];
     engine.on((e) => a.push(e));
+
     engine.on((e) => b.push(e));
     engine.event({ type: "delay", minutes: 45 });
     const token = store.get("playlists", "S124").decision.promo.id;
+
     engine.promo(token, "claim");
     engine.promo(token, "redeem");
     engine.reset();
+
     assert.deepEqual(a, b);
     assert.deepEqual(
       a.map((e) => e.type),
