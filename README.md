@@ -1,106 +1,138 @@
-# MERIDIAN
+# Meridian
 
-A locally runnable airport retail and media application. Five personas share one simulation, one database and the same flight → audience → decision → display → QR → redemption workflow. Default operation needs no cloud services, paid APIs or secrets.
+Meridian is a local demo of airport retail and digital-screen workflows. It uses
+synthetic airport data to show how a flight delay can change an estimated
+audience, influence what a screen displays, and lead to an offer being claimed
+and redeemed.
 
-## Run
+This is a demonstration, not a connection to a real airport or an airport
+operations system.
 
-Use Node 24:
+## Run Meridian on your computer
+
+You need **Node.js 24.x** and npm. The project uses Node's built-in SQLite
+support, so use Node 24 rather than an older version.
+
+Open a terminal in the project folder and run:
 
 ```sh
-npm ci
+npm install
 npm run dev
 ```
 
-Open [the development app](http://localhost:5173). The API runs on port 3001. Copy `.env.example` to `.env` to change configuration.
+When the servers have started, open **http://localhost:5173**. The web app and
+API run together: Vite serves the pages on port `5173` and sends API requests
+to the API on port `3001`. You can check that the API is responding at
+http://localhost:3001/api/health.
 
-For the built application:
+To stop both servers, press **Ctrl+C** in the terminal.
+
+You do not need Docker, a `.env` file, an account, or external API credentials
+for the default demo. On first start, Meridian creates its SQLite database at
+`data/meridian.sqlite` and loads demo data. Changes you make are saved there and
+are still present the next time you start the app.
+
+## What you can explore
+
+All five workspaces share the same demo and database; they are different views,
+not separate accounts.
+
+| Open this page | Use it to                                                            |
+| -------------- | -------------------------------------------------------------------- |
+| `/admin`       | View flights and screens, record delays, and control the simulation. |
+| `/retailer`    | Create campaigns and review campaign activity and redemptions.       |
+| `/media`       | Review campaigns and manage advertising screens and slots.           |
+| `/airline`     | View flights and manage partner offers and passenger messages.       |
+| `/passenger`   | View screen content and follow an offer to claim or redeem it.       |
+
+For a quick walkthrough:
+
+1. Open `/admin`, then open `/passenger` in another tab.
+2. In the passenger view, select screen `S124`.
+3. In Admin, add a 45-minute delay to flight `XY501`.
+4. Look at the updated screen decision and offer. Then follow the offer in the
+   passenger view and review the activity in `/retailer`.
+
+The audience, flight, and revenue figures in this walkthrough are generated
+for the demo. They are not real airport measurements.
+
+## Run a production build locally
+
+To build the web app and serve it with the API on port `3001`:
 
 ```sh
 npm run build
 npm start
 ```
 
-Open [MERIDIAN](http://localhost:3001). Alternatively, with Docker Desktop running:
+Then open **http://localhost:3001**. If `dist/index.html` does not exist,
+`npm start` builds the web app first. `npm run preview` does the same thing.
+
+## Use Docker instead
+
+If you have Docker Desktop installed, you can run the containerized app from the
+project folder:
 
 ```sh
 docker compose up --build
 ```
 
-The first start creates the schema and synthetic data. SQLite persists in `data/` locally or the Docker volume. `npm run seed` replaces the current demo data; use it only when you intend to reset the demo.
+Open **http://localhost:3001**. Docker Compose keeps its database in a named
+volume. Stop the app with `docker compose down`; this keeps the database.
+`docker compose down -v` also deletes the volume and its data, so only use it
+when you intend to remove that database.
 
-## Project map
+## Data and settings
 
-```text
-apps/
-  api/src/
-    server.mjs          startup and shutdown
-    app.mjs             dependency composition and HTTP middleware
-    routes/             URL → controller registration
-    controllers/        request validation and response mapping
-    validators/         campaign input schema
-    services/           decisions, simulation, forecasts, promotions
-    models/             independently verifiable scoring rules
-    repositories/       SQLite reads, writes, transactions and cache
-    adapters/           AODB, AIDX, ACRIS and optional HTTP providers
-    database/           synthetic seed
-    config/             environment validation and OpenAPI generation
-    views/              printable HTML helpers
-  web/src/
-    app/                routing, shared state and workspace shell
-    features/           admin, retailer, media, airline, passenger, etc.
-    shared/             reusable components, API client, types and hooks
-    i18n/               explicit presentation translation and Hindi catalogue
-    styles/             foundation, shell, dashboard, forms and responsive rules
-    design-system/      shared brand, sizing and appearance
-packages/shared-types/  canonical feed/domain contracts
-migrations/             ordered SQLite schema changes
-fixtures/               synthetic input and vendored validation schemas
-public/                 artwork and landing preview assets used by the app
-scripts/                development, validation and packaging tools
-tests/                 backend tests and browser workflows
- docs/                  maintained developer documentation
-```
+The local database is `data/meridian.sqlite`. Normal starts reuse it, including
+the changes made in the workspaces. The Reset control in Admin restores the
+demo data. The `npm run seed` command also replaces the database contents; stop
+the app first, and use either reset only if you are happy to lose your changes.
 
-This uses MVC-style HTTP boundaries with a service/repository layer. React feature modules are the views; forcing React into server-side MVC folders would obscure its actual dependencies. Start with [the developer guide](docs/DEVELOPMENT.md) for a concrete request walkthrough.
+By default, flight data and creative generation work offline. You only need
+environment variables if you are changing the database location, setting a
+public URL for QR links, or connecting an external provider. See
+[.env.example](.env.example) for the available settings, but do not copy it
+unchanged: its sample `PUBLIC_BASE_URL` points to a hosted site. Leave that
+setting out for a normal local run, or replace it with an address reachable
+from the device scanning the QR code. Keep real credentials out of source
+control.
 
-## Experiences and demo
+## Useful commands
 
-| URL             | Purpose                                                   |
-| --------------- | --------------------------------------------------------- |
-| `/`             | Landing page and workspace entry                          |
-| `/admin`        | Network, incidents, master data and decision intelligence |
-| `/retailer`     | Campaigns, creatives, audience and redemption analytics   |
-| `/media`        | Inventory, approvals, advertisers and yield               |
-| `/airline`      | Flights, goodwill messaging, partners and audience        |
-| `/passenger`    | Screen Studio, fullscreen displays and real QR links      |
-| `/claim/:token` | Anonymous claim and single-use demo redemption            |
+Run these from the project folder:
 
-Reset the simulation, select S124, then inject **+45m XY501**. Gate 42 changes to **420 estimated passengers / 52 minutes dwell**; the reproducible campaign scores are **0.86 / 0.52 / 0.21**. Claim and redeem the QR offer, then inspect retailer analytics. See [the full demo](docs/DEMO.md).
+| Command             | What it does                                |
+| ------------------- | ------------------------------------------- |
+| `npm run dev`       | Starts the API and web app for development. |
+| `npm run build`     | Checks TypeScript and builds the web app.   |
+| `npm start`         | Serves the built web app and API locally.   |
+| `npm test`          | Runs the API, domain, and production tests. |
+| `npm run typecheck` | Checks TypeScript without building.         |
+| `npm run lint`      | Checks JavaScript syntax and formatting.    |
+| `npm run test:e2e`  | Runs the browser tests with Playwright.     |
 
-## Checks
+The end-to-end tests change the server and database they run against. Use a
+disposable local database, not data you want to keep. If Playwright's browser
+isn't installed yet, install Chromium with:
 
 ```sh
-npm test
-npm run typecheck
-npm run lint
-npm run build
-npm run test:performance
 npx playwright install chromium
-npm run test:e2e
 ```
 
-Start the built server before browser tests. Override `E2E_BASE_URL` for another port. Tests and reports belong in ignored `artifacts/`, `test-results/` and `playwright-report/`, never in source documentation.
+## Project layout
 
-## Documentation
+- `apps/api/` contains the API, simulation, database access, and feed adapters.
+- `apps/web/` contains the React app and its five workspaces.
+- `packages/shared-types/` contains types shared by the app and adapters.
+- `migrations/` contains ordered SQLite schema updates.
+- `fixtures/` contains synthetic feed examples and reference schemas.
+- `tests/` contains API, domain, production, and browser tests.
+- `docs/ARCHITECTURE.md` explains how the parts fit together.
 
-- [Architecture and data flow](docs/ARCHITECTURE.md)
-- [Developer onboarding](docs/DEVELOPMENT.md)
-- [Airport adapters and provider contracts](docs/ADAPTER_GUIDE.md)
-- [Scoring model](docs/SCORING.md)
-- [Deployment and shared-database boundaries](docs/DEPLOYMENT.md)
-- [Challenge traceability](docs/REQUIREMENTS.md)
-- [Current implementation status](IMPLEMENTATION_STATUS.md)
+## A note about the demo
 
-Live OpenAPI: [API specification](http://localhost:3001/api/openapi.json). Its source is the route registry and schemas; a stale generated copy is not maintained in `docs/`.
-
-The challenge deliberately excludes authentication, payments and passenger/device tracking. This is a production-structured **synthetic demonstration**, not an authenticated airport deployment. A public review URL and physical-phone scan still require a configured host/network; neither is claimed here.
+Flights, audience estimates, queue readings, forecasts, and revenue are
+synthetic. Meridian does not provide airport operations, authentication,
+payment processing, or individual passenger tracking. Treat the figures as
+examples, not operational measurements or revenue guarantees.
