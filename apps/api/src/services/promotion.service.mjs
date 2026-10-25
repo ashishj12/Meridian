@@ -57,6 +57,7 @@ export function promoService(runtime, token, action, options = {}) {
       id: randomUUID(),
       campaignId: p.campaignId,
       outletId: p.outletId,
+      promoCodeId: p.id,
       variant: p.variant || "A",
       timestamp: runtime.clock.time,
       segment:

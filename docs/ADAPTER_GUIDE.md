@@ -38,7 +38,7 @@ The mock AODB adapter emits the 320 reference flights plus 578 deterministic gen
 - **Queue measurement:** ACRIS measurement identity, zone relationship, count and observation time. Keep the original ACRIS entity in provenance.
 - **Scoring evidence:** decisions persist per-campaign score inputs and weights. The validator recomputes the score from those stored inputs instead of trusting a provider's claimed score.
 
-The JSON entity repository is the current persistence boundary; adapters should provide canonical relationships and raw provenance, not reach into that repository directly.
+The repository API remains JSON-record based for service compatibility, but migration 004 maintains typed SQLite projections for flights, screens, campaigns, promo codes, decisions, impressions and redemptions. Their relational columns, indexes and foreign keys are updated with the corresponding `entities` record; `trace_json` and the generic entity payload preserve complete provenance. Adapters should provide canonical relationships and raw provenance, not reach into storage tables directly.
 
 ## Adding an adapter
 

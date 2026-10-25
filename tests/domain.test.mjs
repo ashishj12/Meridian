@@ -375,6 +375,60 @@ test("seed has required counts, thirty history days, valid gate/zone/terminal re
   }
 });
 
+test("typed SQLite projections mirror records and enforce relational constraints", () => {
+  const { store, engine } = setup();
+  try {
+    assert.equal(
+      store.db.prepare("SELECT COUNT(*) AS count FROM flights").get().count,
+      900,
+    );
+    assert.equal(
+      store.db.prepare("SELECT COUNT(*) AS count FROM screens").get().count,
+      180,
+    );
+    for (const table of [
+      "campaigns",
+      "promo_codes",
+      "decisions",
+      "impressions",
+      "redemptions",
+    ])
+      assert.ok(
+        store.db.prepare(`SELECT COUNT(*) AS count FROM ${table}`).get().count >
+          0,
+        `${table} should be seeded`,
+      );
+    assert.deepEqual(store.db.prepare("PRAGMA foreign_key_check").all(), []);
+
+    const campaign = store.get("campaigns", "C1");
+    assert.throws(
+      () => store.put("campaigns", { ...campaign, outletId: "missing-outlet" }),
+      /FOREIGN KEY/,
+    );
+    assert.equal(store.get("campaigns", "C1").outletId, campaign.outletId);
+    assert.equal(
+      store.db
+        .prepare("SELECT outlet_id FROM campaigns WHERE id='C1'")
+        .get().outlet_id,
+      campaign.outletId,
+    );
+
+    const token = store.get("playlists", "S124").decision.promo.id;
+    engine.promo(token, "claim");
+    engine.promo(token, "redeem");
+    assert.equal(
+      store.db
+        .prepare(
+          "SELECT promo_code_id FROM redemptions WHERE promo_code_id=?",
+        )
+        .get(token).promo_code_id,
+      token,
+    );
+  } finally {
+    store.close();
+  }
+});
+
 test("seeded profiles vary by route and reflect business and holiday travel patterns", () => {
   const monday = profile({
     index: 7,

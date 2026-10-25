@@ -8,6 +8,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import http from "node:http";
+import { DatabaseSync } from "node:sqlite";
 import { EntityRepository } from "../apps/api/src/repositories/EntityRepository.mjs";
 import { AirportEngine } from "../apps/api/src/services/AirportEngine.mjs";
 import { createRuntimeCoordinator } from "../apps/api/src/services/runtime-coordinator.mjs";
@@ -21,6 +22,176 @@ import {
   segmentHeatmap,
   sevenDayYield,
 } from "../apps/api/src/services/schedule.service.mjs";
+
+test("typed-entity migration backfills an existing JSON-only database", () => {
+  const directory = fs.mkdtempSync(
+    path.join(os.tmpdir(), "meridian-migration-"),
+  );
+  const file = path.join(directory, "legacy.sqlite");
+  let legacy = new DatabaseSync(file);
+  try {
+    legacy.exec("PRAGMA foreign_keys=ON;");
+    for (const migration of [
+      "001_initial.sql",
+      "002_activity_index.sql",
+      "003_runtime_leases.sql",
+    ])
+      legacy.exec(fs.readFileSync(path.join("migrations", migration), "utf8"));
+    const insert = legacy.prepare(
+      "INSERT INTO entities(kind, id, body) VALUES(?, ?, ?)",
+    );
+    const entities = [
+      ["airlines", "XY", { id: "XY", name: "Skylark Air" }],
+      ["terminals", "T1", { id: "T1", name: "Terminal 1" }],
+      ["zones", "Z1", { id: "Z1", terminal: "T1" }],
+      ["outlets", "O1", { id: "O1", name: "Saffron Table" }],
+      [
+        "screens",
+        "S1",
+        {
+          id: "S1",
+          zoneId: "Z1",
+          terminal: "T1",
+          name: "Gate Screen",
+          gate: "1",
+          orientation: "landscape",
+          size: 55,
+          status: "online",
+          nearestGates: ["1"],
+        },
+      ],
+      [
+        "campaigns",
+        "C1",
+        {
+          id: "C1",
+          outletId: "O1",
+          name: "Test campaign",
+          category: "food",
+          status: "approved",
+          budget: 100,
+          spend: 0,
+          start: "2026-10-14T00:00:00.000Z",
+          end: "2026-10-15T00:00:00.000Z",
+          creativeApproved: true,
+          brandSafe: true,
+          paused: false,
+          stock: true,
+        },
+      ],
+      [
+        "flights",
+        "F1",
+        {
+          id: "F1",
+          number: "XY101",
+          airlineId: "XY",
+          zoneId: "Z1",
+          direction: "D",
+          origin: "MQI",
+          destination: "DXB",
+          terminal: "T1",
+          gate: "1",
+          scheduled: "2026-10-14T15:00:00.000Z",
+          estimated: "2026-10-14T15:00:00.000Z",
+          status: "Scheduled",
+          delay: 0,
+          aircraft: "A320",
+          seats: 180,
+          pax: 150,
+          international: true,
+        },
+      ],
+      [
+        "promos",
+        "P1",
+        {
+          id: "P1",
+          campaignId: "C1",
+          outletId: "O1",
+          zoneId: "Z1",
+          variant: "A",
+          offer: "15% off",
+          expiry: 200,
+          scans: 1,
+          claimed: true,
+          redeemed: false,
+        },
+      ],
+      [
+        "decisions",
+        "D1",
+        {
+          id: "D1",
+          screenId: "S1",
+          campaignId: "C1",
+          timestamp: 100,
+          source: "rules",
+          candidates: [{ id: "C1", score: 0.85 }],
+          reason: "Audience match",
+          presence: {},
+          scoreWeights: {},
+          validated: true,
+          delivered: true,
+        },
+      ],
+      [
+        "activity",
+        "A1",
+        {
+          id: "A1",
+          campaignId: "C1",
+          outletId: "O1",
+          promoCodeId: "P1",
+          timestamp: 100,
+          plays: 1,
+          impressions: 10,
+          redemptions: 1,
+          revenue: 24,
+          segment: "family",
+          variant: "A",
+        },
+      ],
+    ];
+    for (const [kind, id, body] of entities)
+      insert.run(kind, id, JSON.stringify(body));
+    legacy.close();
+    legacy = null;
+
+    const store = new EntityRepository(file);
+    try {
+      assert.equal(
+        store.db
+          .prepare("SELECT COUNT(*) AS count FROM schema_migrations WHERE version=4")
+          .get().count,
+        1,
+      );
+      assert.equal(
+        store.db.prepare("SELECT number FROM flights WHERE id='F1'").get()
+          .number,
+        "XY101",
+      );
+      assert.equal(
+        store.db
+          .prepare("SELECT score FROM decisions WHERE id='D1'")
+          .get().score,
+        0.85,
+      );
+      assert.equal(
+        store.db
+          .prepare("SELECT promo_code_id FROM redemptions WHERE activity_id='A1'")
+          .get().promo_code_id,
+        "P1",
+      );
+      assert.deepEqual(store.db.prepare("PRAGMA foreign_key_check").all(), []);
+    } finally {
+      store.close();
+    }
+  } finally {
+    if (legacy) legacy.close();
+    removeTemporaryWorkspace(directory);
+  }
+});
 
 test("IATA XSD accepts generated AIDX and rejects well-formed but schema-invalid XML", async () => {
   const store = new EntityRepository(":memory:");

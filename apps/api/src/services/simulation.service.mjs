@@ -108,35 +108,38 @@ export function controlService(runtime, input) {
   runtime.emit("simulation.time");
 }
 export function tickService(runtime, seconds = 1) {
-  monitorFeedLag(runtime);
-  if (!runtime.clock.playing) return;
-  const targetTime = runtime.clock.time + seconds * 1000 * runtime.clock.speed;
-  while (targetTime - runtime.clock.lastSlot >= 15000) {
-    runtime.clock.time = runtime.clock.lastSlot + 15000;
-    runtime.clock.lastSlot = runtime.clock.time;
-    runtime.updateScheduledFlights();
-    if (runtime.clock.evidenceMode === "fresh") runtime.refreshMockSources();
-    runtime.evaluate(true);
-  }
-  runtime.clock.time = targetTime;
-  for (const s of runtime.store.all("screens"))
-    if (
-      s.status === "offline" &&
-      runtime.clock.time - s.offlineSince > 300000 &&
-      !runtime.store
-        .all("incidents")
-        .some((i) => i.screenId === s.id && i.status !== "resolved")
-    )
-      runtime.store.put("incidents", {
-        id: randomUUID(),
-        title: `Screen ${s.id} offline for more than five minutes`,
-        screenId: s.id,
-        severity: "high",
-        owner: "Unassigned",
-        status: "open",
-        timestamp: runtime.clock.time,
-      });
-  runtime.emit("simulation.time");
+  return runtime.store.transaction(() => {
+    monitorFeedLag(runtime);
+    if (!runtime.clock.playing) return;
+    const targetTime =
+      runtime.clock.time + seconds * 1000 * runtime.clock.speed;
+    while (targetTime - runtime.clock.lastSlot >= 15000) {
+      runtime.clock.time = runtime.clock.lastSlot + 15000;
+      runtime.clock.lastSlot = runtime.clock.time;
+      runtime.updateScheduledFlights();
+      if (runtime.clock.evidenceMode === "fresh") runtime.refreshMockSources();
+      runtime.evaluate(true);
+    }
+    runtime.clock.time = targetTime;
+    for (const s of runtime.store.all("screens"))
+      if (
+        s.status === "offline" &&
+        runtime.clock.time - s.offlineSince > 300000 &&
+        !runtime.store
+          .all("incidents")
+          .some((i) => i.screenId === s.id && i.status !== "resolved")
+      )
+        runtime.store.put("incidents", {
+          id: randomUUID(),
+          title: `Screen ${s.id} offline for more than five minutes`,
+          screenId: s.id,
+          severity: "high",
+          owner: "Unassigned",
+          status: "open",
+          timestamp: runtime.clock.time,
+        });
+    runtime.emit("simulation.time");
+  });
 }
 export function refreshMockSourcesService(runtime, rewind = false) {
   runtime.store.transaction(() => {

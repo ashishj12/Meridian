@@ -102,9 +102,9 @@ Then open **http://localhost:3001**. If `dist/index.html` doesn't exist yet, `np
 
 ## Data and configuration
 
-**Database.** The local database lives at `data/meridian.sqlite`. Normal starts reuse it, including any changes you made in the workspaces.
+**Database.** The local database lives at `data/meridian.sqlite`. Normal starts reuse it, including any changes you made in the workspaces. SQLite migrations maintain typed, indexed tables with foreign keys for flights, screens, campaigns, promo codes, decisions, impressions and redemptions; the generic entity records remain available for traceability and repository compatibility.
 
-**Resetting the demo.** Use the Reset control in Admin to restore the original demo data. Alternatively, `npm run seed` replaces the database contents; stop the app before running it. Either way, you will lose your changes, so only reset when that's what you want.
+**Resetting the demo.** Use the Reset control in Admin to restore the original demo data. Alternatively, `npm run seed` applies missing migrations and replaces the database contents in one transaction; stop the app before running it. Either way, you will lose your changes, so only reset when that's what you want.
 
 **Environment variables.** By default, flight data and creative generation work offline, so you only need environment variables if you are:
 
