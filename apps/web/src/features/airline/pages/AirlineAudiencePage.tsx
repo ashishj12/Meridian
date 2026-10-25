@@ -55,7 +55,14 @@ export function AirlineAudience(context: WorkspaceContext) {
       </div>
       <div className="two-columns">
         <Panel title={translateText("Your airline's estimated audience")}>
-          <SegmentBars presence={{ segments: data.segments }} />
+          <SegmentBars
+            presence={{
+              segments: data.segments,
+              age: data.age,
+              gender: data.gender,
+              cabin: data.cabin,
+            }}
+          />
           <p className="footnote">
             {translateText(
               "All-day passenger-weighted profiles for the selected airline, no individual records.",

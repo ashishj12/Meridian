@@ -12,34 +12,251 @@ export const timeAt = (hour, minute = 0) =>
     `${DAY}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00Z`,
   );
 const iso = (t) => new Date(t).toISOString();
-export function profile(i, intl = false, scheduled) {
-  const hour = scheduled ? new Date(scheduled).getUTCHours() : null;
-  const morning = hour !== null && hour >= 5 && hour < 10;
-  const evening = hour !== null && hour >= 17;
-  const variation = scheduled ? ((i % 5) - 2) * 0.015 : 0;
-  return {
-    holiday: (intl ? 0.58 : evening ? 0.48 : 0.3) + variation,
-    family: (intl ? 0.31 : evening ? 0.34 : 0.23) + variation,
+const routeDemographics = {
+  ADN: {
+    region: "Northern",
+    nationalities: ["Meridian", "Solmaran", "British"],
+    languages: ["English", "Solmaran", "Hindi"],
+  },
+  BWZ: {
+    region: "Coastal",
+    nationalities: ["Meridian", "Zarhani", "Solmaran"],
+    languages: ["English", "Arabic", "Solmaran"],
+  },
+  CBP: {
+    region: "Central",
+    nationalities: ["Meridian", "British", "French"],
+    languages: ["English", "French", "Solmaran"],
+  },
+  CPZ: {
+    region: "Central",
+    nationalities: ["Meridian", "German", "Solmaran"],
+    languages: ["English", "German", "Solmaran"],
+  },
+  DMQ: {
+    region: "Southern",
+    nationalities: ["Meridian", "Solmaran", "Indian"],
+    languages: ["English", "Tamil", "Hindi"],
+  },
+  BVQ: {
+    region: "Western",
+    nationalities: ["Meridian", "Zarhani", "British"],
+    languages: ["English", "Arabic", "French"],
+  },
+  KST: {
+    region: "Eastern",
+    nationalities: ["Meridian", "Japanese", "Korean"],
+    languages: ["English", "Japanese", "Korean"],
+  },
+  NVQ: {
+    region: "Northern",
+    nationalities: ["Meridian", "Canadian", "British"],
+    languages: ["English", "French", "Solmaran"],
+  },
+  PVQ: {
+    region: "Pacific",
+    nationalities: ["Meridian", "Australian", "New Zealander"],
+    languages: ["English", "Solmaran", "Hindi"],
+  },
+  SMG: {
+    region: "South Asia",
+    nationalities: ["Meridian", "Indian", "Sri Lankan"],
+    languages: ["English", "Hindi", "Tamil"],
+  },
+  DXB: {
+    region: "Gulf",
+    nationalities: ["Meridian", "Emirati", "Indian"],
+    languages: ["English", "Arabic", "Hindi"],
+  },
+};
+const normalizeShares = (shares) => {
+  const total = Object.values(shares).reduce((sum, share) => sum + share, 0);
+  return Object.fromEntries(
+    Object.entries(shares).map(([key, share]) => [key, share / total]),
+  );
+};
+const seededUnit = (text) => {
+  let value = 2166136261;
+  for (const char of text) {
+    value ^= char.charCodeAt(0);
+    value = Math.imul(value, 16777619);
+  }
+  return (value >>> 0) / 0xffffffff;
+};
+const schoolBreak = (date) => {
+  const month = date.getUTCMonth() + 1;
+  const day = date.getUTCDate();
+  return (
+    (month === 7 && day >= 1 && day <= 21) ||
+    (month === 10 && day >= 12 && day <= 18) ||
+    (month === 12 && day >= 20)
+  );
+};
+export function profile({
+  index,
+  origin,
+  destination,
+  international,
+  scheduled,
+  aircraft,
+  seats,
+  passengers,
+  connectingFrom,
+  delayMinutes = 0,
+  festivalActive = false,
+}) {
+  const at = new Date(scheduled);
+  const hour = at.getUTCHours();
+  const weekday = at.getUTCDay();
+  const intl = Boolean(international);
+  const destinationInfo = routeDemographics[destination] || {
+    region: intl ? "International" : "Domestic",
+    nationalities: ["Meridian", intl ? "Solmaran" : "Zarhani", "British"],
+    languages: ["English", intl ? "Hindi" : "Solmaran", "Arabic"],
+  };
+  const schoolHoliday = schoolBreak(at);
+  const mondayBusinessFlight = weekday === 1 && hour >= 6 && hour < 9 && !intl;
+  const fridayHolidayFlight = weekday === 5 && hour >= 17 && intl;
+  const wideBody = seats >= 280 || aircraft === "A359" || aircraft === "B77W";
+  const highLoad = (passengers || 0) / Math.max(seats || 1, 1) > 0.85;
+  const season = [
+    "Winter",
+    "Winter",
+    "Spring",
+    "Spring",
+    "Spring",
+    "Summer",
+    "Summer",
+    "Summer",
+    "Autumn",
+    "Autumn",
+    "Autumn",
+    "Winter",
+  ][at.getUTCMonth()];
+  const routeSeed = `${index}:${origin}:${destination}:${scheduled}:${aircraft}`;
+  const variation = (salt, range = 0.025) =>
+    (seededUnit(`${routeSeed}:${salt}`) - 0.5) * range;
+
+  const purpose = normalizeShares({
     business:
-      (intl ? 0.22 : morning ? 0.66 : evening ? 0.29 : 0.55) - variation,
-    adult: intl ? 0.72 : 0.76,
-    international: intl ? 0.57 : 0,
-    couple: 0.25,
-    solo: 0.34,
-    group: 0.1,
-    children: 0.13,
-    premium: 0.15,
-    frequentFlyer: 0.21,
-    age: {
-      "0–17": 0.18,
-      "18–24": 0.14,
-      "25–34": 0.26,
-      "35–44": 0.2,
-      "45–54": 0.13,
-      "55+": 0.09,
-    },
-    nationalities: ["Meridian", "Solmaran", "Zarhani"],
-    languages: ["English", "हिन्दी", "Solmaran"],
+      (intl ? 0.26 : 0.33) +
+      (mondayBusinessFlight ? 0.34 : 0) -
+      (fridayHolidayFlight ? 0.18 : 0) +
+      variation("business"),
+    holiday:
+      (intl ? 0.38 : 0.23) +
+      (season === "Summer" ? 0.04 : 0) +
+      (fridayHolidayFlight ? 0.27 : 0) +
+      (schoolHoliday ? 0.08 : 0) +
+      (festivalActive ? 0.06 : 0) -
+      (mondayBusinessFlight ? 0.12 : 0) +
+      variation("holiday"),
+    vfr:
+      (intl ? 0.19 : 0.16) +
+      (fridayHolidayFlight ? 0.04 : 0) +
+      variation("vfr"),
+    student: (intl ? 0.09 : 0.13) + variation("student"),
+    religious:
+      (intl ? 0.08 : 0.07) +
+      (festivalActive ? 0.06 : 0) +
+      variation("religious"),
+  });
+  const party = normalizeShares({
+    solo:
+      (mondayBusinessFlight ? 0.62 : intl ? 0.32 : 0.28) -
+      (fridayHolidayFlight ? 0.17 : 0) +
+      variation("solo"),
+    couple:
+      (fridayHolidayFlight ? 0.32 : intl ? 0.25 : 0.2) + variation("couple"),
+    family:
+      (fridayHolidayFlight ? 0.42 : schoolHoliday ? 0.3 : intl ? 0.21 : 0.2) +
+      (wideBody ? 0.025 : 0) +
+      (highLoad ? 0.025 : 0) +
+      variation("family"),
+    group:
+      (mondayBusinessFlight ? 0.12 : intl ? 0.21 : 0.22) +
+      (festivalActive ? 0.04 : 0) +
+      variation("group"),
+  });
+  const age = normalizeShares({
+    "<12":
+      (fridayHolidayFlight ? 0.18 : schoolHoliday ? 0.09 : 0.035) +
+      (intl ? 0.01 : 0) +
+      (wideBody ? 0.025 : 0) +
+      variation("age-child"),
+    "12–17":
+      (fridayHolidayFlight ? 0.13 : schoolHoliday ? 0.11 : 0.07) +
+      variation("age-teen"),
+    "18–24": (mondayBusinessFlight ? 0.09 : 0.15) + variation("age-young"),
+    "25–34":
+      (mondayBusinessFlight ? 0.39 : fridayHolidayFlight ? 0.25 : 0.24) -
+      (intl ? 0.01 : 0) +
+      variation("age-25"),
+    "35–44":
+      (mondayBusinessFlight ? 0.36 : fridayHolidayFlight ? 0.23 : 0.2) +
+      variation("age-35"),
+    "45–54": (fridayHolidayFlight ? 0.11 : 0.16) + variation("age-45"),
+    "55+": (fridayHolidayFlight ? 0.07 : 0.11) + variation("age-55"),
+  });
+  const cabin = normalizeShares({
+    economy:
+      0.84 -
+      (wideBody ? 0.04 : 0) -
+      (mondayBusinessFlight ? 0.1 : 0) -
+      (intl ? 0.01 : 0),
+    premiumEconomy: 0.08 + (wideBody ? 0.025 : 0),
+    business:
+      0.08 +
+      (wideBody ? 0.015 : 0) +
+      (mondayBusinessFlight ? 0.1 : 0) +
+      (intl ? 0.01 : 0),
+  });
+  const female = Math.min(
+    0.62,
+    Math.max(
+      0.38,
+      0.51 + (party.family - 0.25) * 0.08 + variation("gender", 0.04),
+    ),
+  );
+  const frequentFlyer = Math.min(
+    0.7,
+    Math.max(0.04, purpose.business * 0.42 + cabin.business * 0.3 + 0.05),
+  );
+  const dwellMinutes = Math.max(
+    20,
+    Math.round(
+      35 + (seats || 180) / 12 + (hour < 8 ? 15 : 0) + (schoolHoliday ? 10 : 0),
+    ),
+  );
+  return {
+    destination,
+    region: destinationInfo.region,
+    travelType: intl ? "international" : "domestic",
+    connectingFrom:
+      connectingFrom || (intl ? destinationInfo.region + " hub" : origin),
+    purpose,
+    party,
+    gender: { female, male: 1 - female },
+    cabin,
+    frequentFlyer,
+    nationalities: destinationInfo.nationalities,
+    languages: destinationInfo.languages,
+    age,
+    dwellMinutes,
+    delayMinutes: Math.max(0, Number(delayMinutes) || 0),
+    season,
+    schoolHoliday,
+    festivalActive,
+    holiday: purpose.holiday,
+    family: party.family,
+    business: purpose.business,
+    adult: 1 - age["<12"] - age["12–17"],
+    international: intl ? 0.57 + variation("intl") : 0,
+    premium: cabin.premiumEconomy + cabin.business,
+    solo: party.solo,
+    couple: party.couple,
+    group: party.group,
+    children: age["<12"] + age["12–17"],
   };
 }
 export function seed(store) {
@@ -127,6 +344,30 @@ export function seed(store) {
       updatedAt: timeAt(14, 10),
       source: "project-acris-fixture",
     });
+  const profileForFlight = (flight, index, zoneId) => {
+    const scheduled = Date.parse(flight.scheduled);
+    const festivalActive = store
+      .all("calendarEvents")
+      .some(
+        (event) =>
+          (!event.zoneIds?.length || event.zoneIds.includes(zoneId)) &&
+          Date.parse(event.start) <= scheduled &&
+          Date.parse(event.end) > scheduled,
+      );
+    return profile({
+      index,
+      origin: flight.origin || "MQI",
+      destination: flight.destination,
+      international: flight.international,
+      scheduled: flight.scheduled,
+      aircraft: flight.aircraft,
+      seats: flight.seats,
+      passengers: flight.pax,
+      connectingFrom: flight.via,
+      delayMinutes: flight.delay,
+      festivalActive,
+    });
+  };
   const refs = parseAodb(fs.readFileSync(referenceFile, "utf8"));
   const destinations = [
     "ADN",
@@ -150,7 +391,7 @@ export function seed(store) {
       number: airlineId + f.number.slice(2),
       zoneId: `Z${zi + 1}`,
       gate: String(zi * 6 + 1 + (i % 6)),
-      profile: profile(i, f.international, f.scheduled),
+      profile: profileForFlight(f, i, `Z${zi + 1}`),
       updatedAt: timeAt(14, 10),
     };
   });
@@ -176,7 +417,19 @@ export function seed(store) {
       aircraft: i % 2 ? "A320" : "B38M",
       status: "Scheduled",
       delay: 0,
-      profile: profile(i, intl, scheduled),
+      profile: profileForFlight(
+        {
+          origin: "MQI",
+          destination: destinations[i % 10],
+          international: intl,
+          scheduled: iso(scheduled),
+          aircraft: i % 2 ? "A320" : "B38M",
+          seats: 300,
+          pax: 100 + ((i * 37) % 180),
+        },
+        i,
+        `Z${zoneNumber}`,
+      ),
       source: {
         adapter: "seed-aodb",
         timestamp: iso(timeAt(14, 10)),
@@ -203,7 +456,19 @@ export function seed(store) {
     aircraft: "A359",
     status: "Scheduled",
     delay: 0,
-    profile: profile(1, true),
+    profile: profileForFlight(
+      {
+        origin: "MQI",
+        destination: "DXB",
+        international: true,
+        scheduled: iso(timeAt(14, 40)),
+        aircraft: "A359",
+        seats: 283,
+        pax: 240,
+      },
+      1,
+      "Z7",
+    ),
     source: {
       adapter: "scenario-aodb",
       reference: "XY501",
@@ -220,6 +485,20 @@ export function seed(store) {
     gate: "41",
     pax: 180,
     seats: 210,
+    aircraft: "A320",
+    profile: profileForFlight(
+      {
+        origin: "MQI",
+        destination: "SMG",
+        international: true,
+        scheduled: iso(timeAt(15, 18)),
+        aircraft: "A320",
+        seats: 210,
+        pax: 180,
+      },
+      88,
+      "Z7",
+    ),
     scheduled: iso(timeAt(15, 18)),
     estimated: iso(timeAt(15, 18)),
     source: {

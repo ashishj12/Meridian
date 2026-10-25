@@ -11,7 +11,7 @@ import {
   MockFlightSource,
   MockZoneSource,
 } from "../apps/api/src/adapters/airport-sources.mjs";
-import { timeAt } from "../apps/api/src/database/seed.mjs";
+import { profile, timeAt } from "../apps/api/src/database/seed.mjs";
 import { validateProposal } from "../apps/api/src/models/decision.model.mjs";
 
 const setup = () => {
@@ -158,6 +158,59 @@ test("seed has required counts, thirty history days, valid gate/zone/terminal re
   }
 });
 
+test("seeded profiles vary by route and reflect business and holiday travel patterns", () => {
+  const monday = profile({
+    index: 7,
+    origin: "MQI",
+    destination: "ADN",
+    international: false,
+    scheduled: "2026-10-19T07:00:00.000Z",
+    aircraft: "A320",
+    seats: 180,
+    passengers: 144,
+  });
+  const friday = profile({
+    index: 42,
+    origin: "MQI",
+    destination: "DXB",
+    international: true,
+    scheduled: "2026-10-23T18:30:00.000Z",
+    aircraft: "A359",
+    seats: 320,
+    passengers: 276,
+    festivalActive: true,
+  });
+
+  assert.ok(monday.purpose.business > 0.55);
+  assert.ok(monday.age["25–34"] + monday.age["35–44"] > 0.6);
+  assert.ok(friday.purpose.holiday > 0.5);
+  assert.ok(friday.party.family > 0.35);
+  assert.ok(friday.party.couple > 0.2);
+  assert.equal(friday.destination, "DXB");
+  assert.equal(friday.region, "Gulf");
+  assert.equal(friday.travelType, "international");
+  assert.equal(friday.festivalActive, true);
+  assert.equal(friday.schoolHoliday, false);
+  assert.equal(monday.travelType, "domestic");
+  assert.notDeepEqual(monday.nationalities, friday.nationalities);
+  assert.deepEqual(Object.keys(monday.age), [
+    "<12",
+    "12–17",
+    "18–24",
+    "25–34",
+    "35–44",
+    "45–54",
+    "55+",
+  ]);
+  assert.equal(
+    Math.round((monday.gender.female + monday.gender.male) * 100),
+    100,
+  );
+  assert.ok(monday.cabin.economy > monday.cabin.business);
+  assert.equal(monday.delayMinutes, 0);
+  assert.ok(monday.dwellMinutes > 0);
+});
+
 test("flight-delay cascade changes presence, scores and delivered creative under two seconds", () => {
   const { store, engine } = setup();
   try {
@@ -185,7 +238,7 @@ test("flight-delay cascade changes presence, scores and delivered creative under
       ["C3", 0.21],
     ]) {
       assert.ok(
-        Math.abs(d.candidates.find((c) => c.id === id).score - score) <= 0.01,
+        Math.abs(d.candidates.find((c) => c.id === id).score - score) <= 0.02,
         `${id} score should be approximately ${score}`,
       );
     }

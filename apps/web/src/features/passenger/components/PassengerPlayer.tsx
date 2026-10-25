@@ -50,6 +50,11 @@ export function PassengerPlayer({
   relevant,
   error,
 }: PassengerPlayerProps) {
+  const demographics = [
+    ["Gender split", decision?.presence.gender],
+    ["Cabin tier", decision?.presence.cabin],
+    ["Age bands", decision?.presence.age],
+  ];
   return (
     <PhysicalFrame portrait={portrait}>
       <div
@@ -335,6 +340,22 @@ export function PassengerPlayer({
                       </div>
                     ),
                   )}
+                  {demographics.map(([title, values]) => (
+                    <div className="player-profile-bars" key={title}>
+                      <h4>{translateText(title)}</h4>
+                      {Object.entries(values || {}).map(([label, value]) => (
+                        <div className="player-segment" key={label}>
+                          <span>
+                            {translateText(label)}
+                            <b>{translateText(pct(value as number))}</b>
+                          </span>
+                          <i>
+                            <span style={{ width: pct(value as number) }} />
+                          </i>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
                 </div>
                 <button
                   className="player-why"

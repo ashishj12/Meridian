@@ -847,6 +847,12 @@
   background: #bce29f;
   border-radius: 6px;
 }
+.player-profile-bars h4 {
+  color: #a6c2ad;
+  font-size: 18px;
+  font-weight: 500;
+  margin: 28px 0 12px;
+}
 .player-candidate {
   padding: 20px 0;
   border-bottom: 1px solid #ffffff25;

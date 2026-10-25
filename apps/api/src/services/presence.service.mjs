@@ -3,6 +3,9 @@ import { calendarEvidence } from "./calendar.service.mjs";
 const clamp = (value, minimum, maximum) =>
   Math.max(minimum, Math.min(maximum, value));
 const iso = (timestamp) => new Date(timestamp).toISOString();
+const ageBands = ["<12", "12–17", "18–24", "25–34", "35–44", "45–54", "55+"];
+const genderCategories = ["female", "male"];
+const cabinTiers = ["economy", "premiumEconomy", "business"];
 /** Estimate aggregate zone audiences from canonical flights and queues. */
 export function presenceService(
   runtime,
@@ -23,18 +26,22 @@ export function presenceService(
   );
   const entries = nearby.map((f) => {
     const estimatedDeparture = Date.parse(f.estimated);
-    const boardingTime = f.tobt
-      ? Date.parse(f.tobt)
+    const sourceBoardingTime = f.tobt ? Date.parse(f.tobt) : Number.NaN;
+    const boardingTime = Number.isFinite(sourceBoardingTime)
+      ? sourceBoardingTime
       : estimatedDeparture - 20 * 60000;
     const timeToBoarding = Math.max(0, (boardingTime - time) / 60000);
     const dwell = Math.max(0, (estimatedDeparture - time) / 60000 - 20);
+    const numericGateDistance = Math.abs(
+      Number.parseInt(screen?.gate, 10) - Number.parseInt(f.gate, 10),
+    );
     const gateDistance =
       screen && screen.nearestGates?.includes(f.gate)
         ? 0
         : screen
-          ? Math.abs(
-              Number.parseInt(screen.gate, 10) - Number.parseInt(f.gate, 10),
-            )
+          ? Number.isFinite(numericGateDistance)
+            ? numericGateDistance
+            : Number.POSITIVE_INFINITY
           : 0;
     const gateWeight = screen ? 1 / (1 + gateDistance) : 1;
     const boardingWeight = clamp(timeToBoarding / 45, 0, 1);
@@ -52,6 +59,23 @@ export function presenceService(
       ? entries.reduce((a, e) => a + (e.f.profile?.[k] || 0) * e.weight, 0) /
         sum
       : 0;
+  const distribution = (dimension, categories) =>
+    Object.fromEntries(
+      categories.map((category) => [
+        category,
+        sum
+          ? +(
+              entries.reduce(
+                (total, entry) =>
+                  total +
+                  (entry.f.profile?.[dimension]?.[category] || 0) *
+                    entry.weight,
+                0,
+              ) / sum
+            ).toFixed(4)
+          : 0,
+      ]),
+    );
   const segments = Object.fromEntries(
     [
       "holiday",
@@ -96,7 +120,9 @@ export function presenceService(
     destinations: [...new Set(nearby.map((f) => f.destination))].slice(0, 5),
     nationalities: nearby[0]?.profile?.nationalities || ["Meridian"],
     languages: nearby[0]?.profile?.languages || ["English", "हिन्दी"],
-    age: nearby[0]?.profile?.age || {},
+    gender: distribution("gender", genderCategories),
+    cabin: distribution("cabin", cabinTiers),
+    age: distribution("age", ageBands),
     flightIds: nearby.map((f) => f.id),
     flightWeights: entries.map((entry) => ({
       flightId: entry.f.id,
@@ -122,7 +148,7 @@ export function presenceService(
           id: queue.id,
           source: queue.source,
           originalTimestamp: queue.timestamp,
-          receivedAt: queue.updatedAt || timeAt(14, 10),
+          receivedAt: queue.updatedAt || Date.parse(queue.timestamp) || time,
         }
       : null,
     confidence: nearby.length ? 0.84 : 0.3,

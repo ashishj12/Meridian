@@ -40,6 +40,19 @@ export function performanceInsights(store, outletId) {
 export function airlineInsights(store, engine, airlineId) {
   const flights = store.all("flights").filter((f) => f.airlineId === airlineId);
   const total = flights.reduce((a, f) => a + f.pax, 0);
+  const profileDistribution = (dimension, categories) =>
+    Object.fromEntries(
+      categories.map((category) => [
+        category,
+        total
+          ? flights.reduce(
+              (sum, flight) =>
+                sum + (flight.profile[dimension]?.[category] || 0) * flight.pax,
+              0,
+            ) / total
+          : 0,
+      ]),
+    );
   const segments = Object.fromEntries(
     ["holiday", "family", "business", "international", "premium"].map((k) => [
       k,
@@ -69,6 +82,21 @@ export function airlineInsights(store, engine, airlineId) {
     passengers: total,
     flights: flights.length,
     segments,
+    age: profileDistribution("age", [
+      "<12",
+      "12–17",
+      "18–24",
+      "25–34",
+      "35–44",
+      "45–54",
+      "55+",
+    ]),
+    gender: profileDistribution("gender", ["female", "male"]),
+    cabin: profileDistribution("cabin", [
+      "economy",
+      "premiumEconomy",
+      "business",
+    ]),
     estimatedGateImpressions: Math.round(impressions),
     ownCampaignMetrics: own,
     destinations: [...new Set(flights.map((f) => f.destination))].slice(0, 6),
