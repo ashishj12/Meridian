@@ -11,32 +11,36 @@ const clamp = (value, minimum, maximum) =>
 const iso = (timestamp) => new Date(timestamp).toISOString();
 function segmentLearning(runtime, campaignId, presence) {
   const segments = ["family", "business", "holiday"];
-  const activities = runtime.store
-    .all("activity")
-    .filter((activity) => activity.campaignId === campaignId);
-  const estimates = Object.fromEntries(
-    segments.map((segment) => {
-      const records = activities.filter(
-        (activity) => activity.segment === segment,
-      );
-      const scans = records.reduce(
-        (sum, activity) => sum + (activity.scans || 0),
-        0,
-      );
-      const redemptions = records.reduce(
-        (sum, activity) => sum + (activity.redemptions || 0),
-        0,
-      );
-      return [
-        segment,
-        {
-          scans,
-          redemptions,
-          conversion: (redemptions + 1) / (scans + 20),
-        },
-      ];
-    }),
-  );
+  let estimates = runtime.evalContext?.learning.get(campaignId);
+  if (!estimates) {
+    const activities = (
+      runtime.evalContext?.activities || runtime.store.all("activity")
+    ).filter((activity) => activity.campaignId === campaignId);
+    estimates = Object.fromEntries(
+      segments.map((segment) => {
+        const records = activities.filter(
+          (activity) => activity.segment === segment,
+        );
+        const scans = records.reduce(
+          (sum, activity) => sum + (activity.scans || 0),
+          0,
+        );
+        const redemptions = records.reduce(
+          (sum, activity) => sum + (activity.redemptions || 0),
+          0,
+        );
+        return [
+          segment,
+          {
+            scans,
+            redemptions,
+            conversion: (redemptions + 1) / (scans + 20),
+          },
+        ];
+      }),
+    );
+    runtime.evalContext?.learning.set(campaignId, estimates);
+  }
   const totalShare = segments.reduce(
     (sum, segment) => sum + (presence.segments[segment] || 0),
     0,
@@ -462,6 +466,7 @@ export function evaluateService(runtime, deliver = true, zoneIds) {
     campaigns,
     activities: runtime.store.all("activity"),
     decisions: runtime.store.all("decisions"),
+    learning: new Map(),
     metrics: new Map(),
     dailySpend: new Map(),
     dailyPlays: new Map(),

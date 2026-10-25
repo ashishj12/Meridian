@@ -151,7 +151,16 @@
   inset: 0 12%;
   border-radius: 48% 48% 10% 10%;
   background: linear-gradient(135deg, #f3ede0, #827f72 55%, #dfd4bf);
-  clip-path: polygon(30% 0, 70% 0, 100% 25%, 80% 40%, 75% 100%, 25% 100%, 20% 40%, 0 25%);
+  clip-path: polygon(
+    30% 0,
+    70% 0,
+    100% 25%,
+    80% 40%,
+    75% 100%,
+    25% 100%,
+    20% 40%,
+    0 25%
+  );
   box-shadow: 0 20px 32px #433a2b30;
 }
 .fashion-scene span {
@@ -177,8 +186,7 @@
   background:
     radial-gradient(ellipse at 38% 39%, #bb6b38 0 8%, transparent 9%),
     radial-gradient(ellipse at 62% 42%, #d1a653 0 12%, transparent 13%),
-    radial-gradient(ellipse at 48% 63%, #75854f 0 14%, transparent 15%),
-    #e8ddc5;
+    radial-gradient(ellipse at 48% 63%, #75854f 0 14%, transparent 15%), #e8ddc5;
   box-shadow: 0 14px 28px #51452e38;
 }
 .ad-art.mini {

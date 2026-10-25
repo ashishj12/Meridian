@@ -45,10 +45,12 @@ export function Library(context: WorkspaceContext) {
           <button
             className="primary"
             onClick={() =>
-              context.action("/creatives/generate", { brief }).then((result) => {
-                setCreative(result);
-                setPreviewLanguage("en");
-              })
+              context
+                .action("/creatives/generate", { brief })
+                .then((result) => {
+                  setCreative(result);
+                  setPreviewLanguage("en");
+                })
             }
           >
             <Sparkles size={15} />

@@ -150,13 +150,13 @@ Unit, API, domain, and production tests run with:
 npm test
 ```
 
-Browser tests use Playwright. If Chromium isn't installed yet:
+Browser tests use Playwright and start an isolated API instance with a temporary
+SQLite database and port by default. They never use the development database.
+If Chromium isn't installed yet:
 
 ```sh
 npx playwright install chromium
 ```
-
-> **Warning:** The end-to-end tests change the server and database they run against. Use a disposable local database, never data you want to keep.
 
 ## Troubleshooting
 
@@ -192,3 +192,8 @@ Flights, audience estimates, queue readings, forecasts, and revenue are all synt
 - individual passenger tracking.
 
 Treat every figure as an example, not an operational measurement or a revenue guarantee.
+
+The accelerated simulation is also a proof-of-concept workload: the current
+60× benchmark averages about 5 seconds per real-time tick with 180 screens, so
+that speed can fall behind wall-clock time. Docker Compose was not verifiable
+in the development environment when the Docker daemon was unavailable.

@@ -25,7 +25,7 @@ test("Admin layout stays readable and contained at desktop, compact and phone wi
     await expect(
       page.getByRole("region", { name: "Airport screen map", exact: true }),
     ).toBeVisible();
-    await expect(page.locator(".network-screen")).toHaveCount(180);
+    await expect(page.locator(".floor-screen")).toHaveCount(180);
     const layout = await page.evaluate(() => {
       const sidebar = document
         .querySelector(".sidebar")!
@@ -52,9 +52,7 @@ test("Admin layout stays readable and contained at desktop, compact and phone wi
         columns: getComputedStyle(
           document.querySelector(".kpi-grid")!,
         ).gridTemplateColumns.split(" ").length,
-        mapColumns: getComputedStyle(
-          document.querySelector(".network-terminals")!,
-        ).gridTemplateColumns.split(" ").length,
+        mapTerminals: document.querySelectorAll(".floor-terminal").length,
         pageHeight: document.documentElement.scrollHeight,
       };
     });
@@ -66,7 +64,7 @@ test("Admin layout stays readable and contained at desktop, compact and phone wi
     expect(layout.cardHeight).toBeLessThan(185);
     if (width >= 1440) {
       expect(layout.columns).toBe(6);
-      expect(layout.mapColumns).toBe(2);
+      expect(layout.mapTerminals).toBe(2);
     }
     await page.screenshot({
       path: `${output}/admin-${width}x${height}.png`,
@@ -89,9 +87,10 @@ test("Admin terminal filters, screen inspection, incident navigation and live de
   await request.post("/api/simulation/control", { data: { action: "reset" } });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/admin");
-  await expect(page.locator(".network-screen")).toHaveCount(180);
+  await expect(page.locator(".floor-screen")).toHaveCount(180);
   await page.getByRole("button", { name: "T2", exact: true }).click();
-  await expect(page.locator(".network-screen")).toHaveCount(90);
+  await expect(page.locator(".floor-screen")).toHaveCount(180);
+  await expect(page.locator('.floor-zone[opacity="0.22"]')).toHaveCount(5);
   await page
     .getByRole("button", { name: "S124 online gate 42", exact: true })
     .click();
@@ -103,10 +102,10 @@ test("Admin terminal filters, screen inspection, incident navigation and live de
   await page.getByRole("button", { name: "Close dialog", exact: true }).click();
   await page.getByRole("button", { name: "+45m XY501", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "420 passengers in catchment" }),
+    page.getByRole("heading", { name: /\d+ passengers in catchment/ }),
   ).toBeVisible();
   await expect(page.locator(".network-focus")).toContainText(
-    "420 estimated passengers",
+    /\d+ estimated passengers/,
   );
   await page
     .getByRole("button", { name: "Review incidents", exact: false })

@@ -15,6 +15,7 @@ const delayStart = performance.now();
 engine.event({ type: "delay", minutes: 45 });
 const delayMs = performance.now() - delayStart;
 
+const revenueBeforeRedemption = engine.metrics("O1").revenue;
 const token = store.get("playlists", "S124").decision.promo.id;
 engine.promo(token, "claim");
 engine.promo(token, "redeem");
@@ -24,7 +25,7 @@ store.close();
 store = new EntityRepository(file);
 engine = new AirportEngine(store);
 
-assert.equal(engine.metrics("O1").revenue, 24);
+assert.equal(engine.metrics("O1").revenue, revenueBeforeRedemption + 24);
 assert.equal(engine.clock.sequence, sequence);
 engine.control({ action: "play", speed: 60 });
 

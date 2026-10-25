@@ -43,7 +43,8 @@ export function MockScreenPreview({
         <AdArt campaign={creative} lang={language} />
       </div>
       <p className="mock-screen-template">
-        {creative.adPage?.templateId || translateText("Ready-to-edit screen ad")}
+        {creative.adPage?.templateId ||
+          translateText("Ready-to-edit screen ad")}
       </p>
     </div>
   );

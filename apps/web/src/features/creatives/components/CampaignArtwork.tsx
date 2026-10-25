@@ -15,10 +15,7 @@ export function AdArt({ campaign: c, lang, mini = false }: any) {
       : lang === "hi" && c.offerHi
         ? c.offerHi
         : c.offer;
-  const copy =
-    translated && c.copySecond
-      ? c.copySecond
-      : c.copy || offer;
+  const copy = translated && c.copySecond ? c.copySecond : c.copy || offer;
   const cta =
     translated && c.ctaSecond
       ? c.ctaSecond
@@ -101,28 +98,24 @@ export function AdArt({ campaign: c, lang, mini = false }: any) {
           {translateText(
             c.adPage?.brand ||
               (c.category === "information"
-              ? "MERIDIAN"
-              : c.category === "sweets"
-                ? "SAFFRON"
-                : c.category === "coffee"
-                  ? "JUNIPER"
-                  : c.category === "toys"
-                    ? "LITTLE ORBIT"
-                    : c.category === "goodwill"
-                      ? "JUNIPER × SKYLARK"
-                      : c.category === "lounge"
-                        ? "ALTITUDE"
-                        : "AURELIA"),
+                ? "MERIDIAN"
+                : c.category === "sweets"
+                  ? "SAFFRON"
+                  : c.category === "coffee"
+                    ? "JUNIPER"
+                    : c.category === "toys"
+                      ? "LITTLE ORBIT"
+                      : c.category === "goodwill"
+                        ? "JUNIPER × SKYLARK"
+                        : c.category === "lounge"
+                          ? "ALTITUDE"
+                          : "AURELIA"),
           )}
           <small>{translateText("THE ART OF A BETTER JOURNEY")}</small>
         </span>
-        <h2>
-          {translateText(headline)}
-        </h2>
+        <h2>{translateText(headline)}</h2>
         <p>{translateText(copy)}</p>
-        {c.copy && (
-          <span className="ad-offer">{translateText(offer)}</span>
-        )}
+        {c.copy && <span className="ad-offer">{translateText(offer)}</span>}
         <span className="ad-cta">
           {translateText(cta)}
           <ArrowUpRight size={15} />

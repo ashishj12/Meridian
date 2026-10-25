@@ -61,7 +61,10 @@ export class EntityRepository {
     );
     this.db.exec(
       fs.readFileSync(
-        new URL("../../../../migrations/004_typed_entities.sql", import.meta.url),
+        new URL(
+          "../../../../migrations/004_typed_entities.sql",
+          import.meta.url,
+        ),
         "utf8",
       ),
     );

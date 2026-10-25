@@ -134,18 +134,20 @@ const routeTerms = {
 
 function parseBrief(brief) {
   const text = brief.toLowerCase();
-  const category = [
-    ["sweets", /\b(sweets?|mithai|chocolate|dessert|confectionery)\b/],
-    ["coffee", /\b(coffee|café|cafe|tea|espresso)\b/],
-    ["toys", /\b(toys?|play|kids|children)\b/],
-    ["perfume", /\b(perfume|fragrance|scent|cologne)\b/],
-    ["beauty", /\b(beauty|skincare|skin care|cosmetics|makeup)\b/],
-    ["fashion", /\b(fashion|apparel|clothing|wear|accessories)\b/],
-    ["food", /\b(food|meal|snacks?|restaurant)\b/],
-  ].find(([, pattern]) => pattern.test(text))?.[0] || "food";
+  const category =
+    [
+      ["sweets", /\b(sweets?|mithai|chocolate|dessert|confectionery)\b/],
+      ["coffee", /\b(coffee|café|cafe|tea|espresso)\b/],
+      ["toys", /\b(toys?|play|kids|children)\b/],
+      ["perfume", /\b(perfume|fragrance|scent|cologne)\b/],
+      ["beauty", /\b(beauty|skincare|skin care|cosmetics|makeup)\b/],
+      ["fashion", /\b(fashion|apparel|clothing|wear|accessories)\b/],
+      ["food", /\b(food|meal|snacks?|restaurant)\b/],
+    ].find(([, pattern]) => pattern.test(text))?.[0] || "food";
   const firstClause = brief.split(/[,.;\n]/, 1)[0].trim();
   const product = firstClause || templates[category].brand;
-  const discount = brief.match(/\b\d{1,2}\s*%/)?.[0]?.replace(/\s+/g, "") || "15%";
+  const discount =
+    brief.match(/\b\d{1,2}\s*%/)?.[0]?.replace(/\s+/g, "") || "15%";
   const audience = /\b(famil(?:y|ies)|children|kids)\b/.test(text)
     ? "families"
     : /\b(business|work|professional)\b/.test(text)
@@ -164,7 +166,9 @@ function parseBrief(brief) {
 }
 
 export class OfflineCreativeProvider {
-  constructor({ secondLanguage = process.env.CREATIVE_SECOND_LANGUAGE || "hi" } = {}) {
+  constructor({
+    secondLanguage = process.env.CREATIVE_SECOND_LANGUAGE || "hi",
+  } = {}) {
     this.secondLanguage = z.enum(["hi", "ar", "fr"]).parse(secondLanguage);
   }
 
@@ -243,9 +247,7 @@ export class VendorCreativeProvider {
     this.secondLanguage = z
       .enum(["hi", "ar", "fr"])
       .parse(
-        options.secondLanguage ||
-          process.env.CREATIVE_SECOND_LANGUAGE ||
-          "hi",
+        options.secondLanguage || process.env.CREATIVE_SECOND_LANGUAGE || "hi",
       );
     this.fetchImplementation = options.fetchImplementation;
   }
@@ -273,8 +275,7 @@ export class VendorCreativeProvider {
         category: z.string().max(30),
       })
       .parse(JSON.parse(response));
-    const headlineSecond =
-      creative.headlineSecond || creative.headlineHi;
+    const headlineSecond = creative.headlineSecond || creative.headlineHi;
     const offerSecond = creative.offerSecond || creative.offerHi || "";
     if (!headlineSecond)
       throw new Error(
@@ -288,12 +289,9 @@ export class VendorCreativeProvider {
       ...creative,
       headlineSecond,
       headlineHi:
-        this.secondLanguage === "hi"
-          ? headlineSecond
-          : creative.headlineHi,
+        this.secondLanguage === "hi" ? headlineSecond : creative.headlineHi,
       offerSecond,
-      offerHi:
-        this.secondLanguage === "hi" ? offerSecond : creative.offerHi,
+      offerHi: this.secondLanguage === "hi" ? offerSecond : creative.offerHi,
       secondLanguage: this.secondLanguage,
       provider: "vendor-api",
       label: "External creative provider · requires review before publication",

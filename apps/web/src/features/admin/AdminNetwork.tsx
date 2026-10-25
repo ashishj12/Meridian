@@ -53,7 +53,7 @@ export default function AdminNetwork({
             "T1 and T2 floor plan with passenger presence heat and screen health",
           )}
         >
-          <path className="floor-terminal"           d="M22 68 50 48h425l27 22v310H22z" />
+          <path className="floor-terminal" d="M22 68 50 48h425l27 22v310H22z" />
           <path
             className="floor-terminal"
             d="m523 70 27-22h425l25 20v310H523z"

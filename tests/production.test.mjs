@@ -162,7 +162,9 @@ test("typed-entity migration backfills an existing JSON-only database", () => {
     try {
       assert.equal(
         store.db
-          .prepare("SELECT COUNT(*) AS count FROM schema_migrations WHERE version=4")
+          .prepare(
+            "SELECT COUNT(*) AS count FROM schema_migrations WHERE version=4",
+          )
           .get().count,
         1,
       );
@@ -172,14 +174,15 @@ test("typed-entity migration backfills an existing JSON-only database", () => {
         "XY101",
       );
       assert.equal(
-        store.db
-          .prepare("SELECT score FROM decisions WHERE id='D1'")
-          .get().score,
+        store.db.prepare("SELECT score FROM decisions WHERE id='D1'").get()
+          .score,
         0.85,
       );
       assert.equal(
         store.db
-          .prepare("SELECT promo_code_id FROM redemptions WHERE activity_id='A1'")
+          .prepare(
+            "SELECT promo_code_id FROM redemptions WHERE activity_id='A1'",
+          )
           .get().promo_code_id,
         "P1",
       );

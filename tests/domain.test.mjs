@@ -407,9 +407,8 @@ test("typed SQLite projections mirror records and enforce relational constraints
     );
     assert.equal(store.get("campaigns", "C1").outletId, campaign.outletId);
     assert.equal(
-      store.db
-        .prepare("SELECT outlet_id FROM campaigns WHERE id='C1'")
-        .get().outlet_id,
+      store.db.prepare("SELECT outlet_id FROM campaigns WHERE id='C1'").get()
+        .outlet_id,
       campaign.outletId,
     );
 
@@ -418,9 +417,7 @@ test("typed SQLite projections mirror records and enforce relational constraints
     engine.promo(token, "redeem");
     assert.equal(
       store.db
-        .prepare(
-          "SELECT promo_code_id FROM redemptions WHERE promo_code_id=?",
-        )
+        .prepare("SELECT promo_code_id FROM redemptions WHERE promo_code_id=?")
         .get(token).promo_code_id,
       token,
     );

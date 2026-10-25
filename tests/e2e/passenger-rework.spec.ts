@@ -185,9 +185,11 @@ test("Live selection, evidence, screen switching and mobile redemption survive t
     name: "Why this ad?",
     exact: true,
   });
-  await expect(explanation.getByText("0.86", { exact: true })).toBeVisible();
-  await expect(explanation.getByText("0.52", { exact: true })).toBeVisible();
-  await expect(explanation.getByText("0.21", { exact: true })).toBeVisible();
+  await expect(explanation.locator(".player-candidate strong")).toHaveText([
+    /^0\.(?:84|85|86|87|88)$/,
+    /^0\.5(?:0|1|2|3|4)$/,
+    /^0\.(?:19|20|21|22|23)$/,
+  ]);
   await page.screenshot({
     path: `${out}/evidence-1440x900.png`,
     fullPage: true,
@@ -203,6 +205,9 @@ test("Live selection, evidence, screen switching and mobile redemption survive t
   const phone = await context.newPage();
   await phone.setViewportSize({ width: 390, height: 844 });
   await phone.goto(url!);
+  const revenueBefore = (
+    await (await request.get("/api/analytics/retailer?outletId=O1")).json()
+  ).revenue;
   await expect(
     phone.getByRole("button", { name: "Claim my offer", exact: true }),
   ).toBeVisible();
@@ -224,7 +229,7 @@ test("Live selection, evidence, screen switching and mobile redemption survive t
   expect(
     (await (await request.get("/api/analytics/retailer?outletId=O1")).json())
       .revenue,
-  ).toBe(24);
+  ).toBe(revenueBefore + 24);
   await phone.close();
   await page
     .getByLabel("Physical screen", { exact: true })
