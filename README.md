@@ -123,7 +123,7 @@ See [`.env.example`](.env.example) for the available settings. For a normal loca
 - **React** supports the five role-specific workspaces over the same shared state.
 - **Vite** provides a fast local development server and production web build.
 - **Server-Sent Events (SSE)** deliver one-way live updates from the API without polling or a separate message broker.
-
+g
 These choices suit a single-host proof of concept; they are not a recommendation to run a multi-host airport operations platform on one SQLite file.
 
 API reference: run the app and open [`/api/docs`](http://localhost:3001/api/docs), or fetch the OpenAPI document at [`/api/openapi.json`](http://localhost:3001/api/openapi.json). Adapter contracts and a vendor example are in [the adapter guide](docs/ADAPTER_GUIDE.md).
