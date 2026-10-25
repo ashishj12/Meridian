@@ -1,4 +1,5 @@
 import { seed } from "../database/seed.mjs";
+import { createAiScorer } from "../adapters/ai-scorers.mjs";
 import { presenceService } from "./presence.service.mjs";
 import { metricsService } from "./metrics.service.mjs";
 import {
@@ -26,8 +27,10 @@ import { snapshotService } from "./snapshot.service.mjs";
 
 /** Application facade. Services below own business rules; HTTP controllers never advance time directly. */
 export class AirportEngine {
-  constructor(store) {
+  constructor(store, { aiScorer = createAiScorer() } = {}) {
     this.store = store;
+    this.aiScorer = aiScorer;
+    this.evaluationQueue = Promise.resolve();
     this.listeners = new Set();
     store.transaction(() => {
       store.refresh();
@@ -40,10 +43,11 @@ export class AirportEngine {
     this.presences = {};
     if (!store.all("playlists").length) {
       this.updateScheduledFlights();
-      this.evaluate(false);
+      this.ready = this.evaluate(false);
     } else
       for (const zone of store.all("zones"))
         this.presences[zone.id] = this.presence(zone.id);
+    this.ready ||= Promise.resolve();
   }
   synchronize() {
     if (!this.store.refresh()) return false;
@@ -80,11 +84,18 @@ export class AirportEngine {
   candidates(screen, presence, campaigns) {
     return candidatesService(this, screen, presence, campaigns);
   }
-  decide(screen, campaigns, deliver = false) {
-    return decideService(this, screen, campaigns, deliver);
+  decide(screen, campaigns, deliver = false, proposalOverride) {
+    return decideService(this, screen, campaigns, deliver, proposalOverride);
   }
   evaluate(deliver = true, zoneIds) {
-    return evaluateService(this, deliver, zoneIds);
+    if (!this.aiScorer.isAsync) return evaluateService(this, deliver, zoneIds);
+    const evaluation = this.evaluationQueue.then(() =>
+      evaluateService(this, deliver, zoneIds),
+    );
+    this.evaluationQueue = evaluation.catch((error) => {
+      console.error("Asynchronous AI decision evaluation failed:", error);
+    });
+    return evaluation;
   }
   recordFeed(name, received = true) {
     return recordFeedService(this, name, received);

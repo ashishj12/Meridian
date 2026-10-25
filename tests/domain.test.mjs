@@ -13,11 +13,94 @@ import {
 } from "../apps/api/src/adapters/airport-sources.mjs";
 import { profile, timeAt } from "../apps/api/src/database/seed.mjs";
 import { validateProposal } from "../apps/api/src/models/decision.model.mjs";
+import {
+  LlmAiScorer,
+  OfflineHeuristicScorer,
+} from "../apps/api/src/adapters/ai-scorers.mjs";
 
-const setup = () => {
+const setup = (aiScorer) => {
   const store = new EntityRepository(":memory:");
-  return { store, engine: new AirportEngine(store) };
+  return { store, engine: new AirportEngine(store, { aiScorer }) };
 };
+
+test("AI scorers produce an offline ranking and validate the LLM request contract", async () => {
+  const presence = {
+    evidence: [{ id: "F1" }],
+    queueEvidence: { id: "Q1" },
+    calendarEvidence: [],
+  };
+  const candidates = [
+    { id: "C1", score: 0.86, eligible: true },
+    { id: "C2", score: 0.52, eligible: true },
+    { id: "C3", score: 0.21, eligible: false },
+  ];
+  const offline = new OfflineHeuristicScorer().rank({
+    presence,
+    candidates,
+    now: timeAt(14, 10),
+  });
+  assert.deepEqual(
+    offline.ranking.map((item) => item.campaignId),
+    ["C1", "C2"],
+  );
+  assert.deepEqual(offline.evidenceIds, ["F1", "Q1"]);
+
+  let sent;
+  const llm = new LlmAiScorer({
+    endpoint: "https://ai.example.test/rank",
+    fetchImplementation: async (url, options) => {
+      sent = { url, options };
+      return new Response(
+        JSON.stringify({
+          ranking: [{ campaignId: "C1", score: 0.86, evidenceIds: ["F1"] }],
+          rationale: "Trusted flight evidence supports C1.",
+          generatedAt: "2026-10-14T14:10:00.000Z",
+        }),
+      );
+    },
+  });
+  const answer = await llm.rank({
+    presence,
+    candidates,
+    now: timeAt(14, 10),
+  });
+  assert.equal(sent.url, "https://ai.example.test/rank");
+  assert.deepEqual(
+    JSON.parse(sent.options.body).eligibleCandidates.map(
+      (candidate) => candidate.campaignId,
+    ),
+    ["C1", "C2"],
+  );
+  assert.deepEqual(answer.evidenceIds, ["F1"]);
+});
+
+test("async AI rankings pass through the decision gate before publication", async () => {
+  const aiScorer = {
+    isAsync: true,
+    async rank(input) {
+      return new OfflineHeuristicScorer().rank(input);
+    },
+  };
+  const { store, engine } = setup(aiScorer);
+  try {
+    await engine.ready;
+    assert.equal(store.get("playlists", "S124").decision.source, "ai");
+
+    engine.aiScorer.rank = async () => {
+      throw new Error("AI endpoint unavailable");
+    };
+    await engine.evaluate(false);
+    const decision = store.get("playlists", "S124").decision;
+    assert.equal(decision.source, "rules");
+    assert.ok(
+      decision.rejectionReasons.some((reason) =>
+        reason.includes("AI scorer request failed"),
+      ),
+    );
+  } finally {
+    store.close();
+  }
+});
 
 test("independent validator rejects invented scores and contradictory stored evidence", () => {
   const { store, engine } = setup();
@@ -44,6 +127,55 @@ test("independent validator rejects invented scores and contradictory stored evi
     );
   } finally {
     store.close();
+  }
+});
+
+test("hallucinated evidence, stale AI timestamps and invented scores fall back to rules", () => {
+  const cases = [
+    {
+      alter: (proposal) => proposal.evidenceIds.push("HALLUCINATED-FLIGHT"),
+      reason: "Untrusted evidence ID",
+    },
+    {
+      alter: (proposal) => {
+        proposal.generatedAt = "2020-01-01T00:00:00.000Z";
+      },
+      reason: "stale or unverifiable",
+    },
+    {
+      alter: (proposal) => {
+        proposal.ranking[0].score = 0.99;
+      },
+      reason: "does not match recomputed score",
+    },
+  ];
+  for (const [index, scenario] of cases.entries()) {
+    const aiScorer = {
+      rank(input) {
+        const proposal = new OfflineHeuristicScorer().rank(input);
+        scenario.alter(proposal);
+        return proposal;
+      },
+    };
+    const { store, engine } = setup(aiScorer);
+    try {
+      engine.event({
+        id: `ai-failure-${index}`,
+        type: "delay",
+        flightId: "XY501",
+        minutes: 45,
+      });
+      const decision = store.get("playlists", "S124").decision;
+      assert.equal(decision.campaignId, "C1");
+      assert.equal(decision.source, "rules");
+      assert.ok(
+        decision.rejectionReasons.some((message) =>
+          message.toLowerCase().includes(scenario.reason.toLowerCase()),
+        ),
+      );
+    } finally {
+      store.close();
+    }
   }
 });
 

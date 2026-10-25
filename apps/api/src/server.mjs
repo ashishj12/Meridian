@@ -5,6 +5,7 @@ import "dotenv/config";
 
 const configuration = readConfiguration();
 const instance = createApp();
+await instance.engine.ready;
 const stopVendor =
   configuration.FLIGHT_SOURCE === "vendor-api"
     ? startVendorIngestion(instance)

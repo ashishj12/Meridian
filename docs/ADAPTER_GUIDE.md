@@ -11,6 +11,7 @@ The contracts are intentionally small and implemented by the adapters in `apps/a
 | `FlightSource`     | `getSnapshot({ signal })`; async `stream({ signal })` | Snapshot flights and normalized flight events   |
 | `AcrisSource`      | `getZones()`; async `streamMeasurements()`            | Zones and queue measurements                    |
 | `CreativeProvider` | `generate(brief)`                                     | A creative payload suitable for campaign review |
+| `AiScorer`         | `rank({ presence, candidates, now })`                 | Ranked campaign IDs, scores, evidence IDs and rationale |
 
 `getSnapshot()` maps to canonical flights, including stable `id`, flight number, direction, route, schedule, gate, status, passenger estimate and delay. Stream events are parsed to canonical AIDX notification data and ingested by `feed-ingestion.service.mjs`, which resolves the flight against the trusted snapshot before applying it. ACRIS entities preserve their source URN and raw payload under provenance. Creative providers return the same creative shape irrespective of whether the source is an offline template or a vendor API.
 
@@ -20,9 +21,10 @@ These are structural JavaScript interfaces: conform by implementing the operatio
 
 - `FLIGHT_SOURCE=mock-aidx` is the default, offline mode. `FLIGHT_SOURCE=vendor-api` enables the vendor snapshot and event poller. It requires `VENDOR_SNAPSHOT_URL`; `VENDOR_EVENTS_URL` supplies events. `VENDOR_API_TOKEN` is optional.
 - `AI_PROVIDER=offline-template` is the default creative generator. `AI_PROVIDER=vendor-api` calls `AI_ENDPOINT` and optionally sends `AI_API_KEY`.
+- `AI_SCORER=offline-heuristic` is the default, deterministic scorer with no network dependency. `AI_SCORER=llm` calls `AI_SCORER_ENDPOINT` and optionally sends `AI_SCORER_API_KEY`. The endpoint receives the crowd profile and eligible candidates; it must return a ranking, rationale and `generatedAt` timestamp.
 - Keep endpoint secrets out of source control. Configuration is validated during server startup in `config/environment.mjs`.
 
-`AI_PROVIDER` currently selects creative generation, not the campaign decision scorer. Do not point it at an untrusted endpoint or treat generated creative as approved: media review remains a separate workflow.
+`AI_PROVIDER` selects creative generation; `AI_SCORER` is a separate decision-ranking boundary. Neither provider can approve creative or bypass deterministic campaign eligibility, trusted evidence, timestamp freshness or score-reproducibility checks. Rejected rankings fall back to rules and their reasons are recorded on the decision.
 
 ## Canonical entities
 
@@ -31,6 +33,7 @@ These are structural JavaScript interfaces: conform by implementing the operatio
 - **Campaign:** outlet, eligible zones/screens/gates, schedule, audience weights, budget, caps, creative approval and trigger rules.
 - **Playlist and decision:** a screen's chosen campaign and a traceable decision containing score, evidence, rationale and timestamp.
 - **Queue measurement:** ACRIS measurement identity, zone relationship, count and observation time. Keep the original ACRIS entity in provenance.
+- **Scoring evidence:** decisions persist per-campaign score inputs and weights. The validator recomputes the score from those stored inputs instead of trusting a provider's claimed score.
 
 The JSON entity repository is the current persistence boundary; adapters should provide canonical relationships and raw provenance, not reach into that repository directly.
 
@@ -41,6 +44,8 @@ The JSON entity repository is the current persistence boundary; adapters should 
 3. Map vendor identifiers through explicit configuration/reference data and return the canonical shape above. Preserve source ID, observation timestamp and raw record for traceability.
 4. Wire the implementation at the existing source-selection/composition boundary. Keep services dependent on the contract, not on the vendor SDK.
 5. Add fixture-driven tests for valid, malformed, unknown-ID and stale inputs. Run `npm run build && npm test`.
+
+For a new `AiScorer`, implement `rank({ presence, candidates, now })` and return `{ ranking: [{ campaignId, score, evidenceIds }], evidenceIds, rationale, generatedAt }`. The scorer may rank only eligible candidates; the deterministic decision gate still validates every ID, timestamp and reproducible score before a playlist is published.
 
 ## Worked example: adding a flight vendor
 

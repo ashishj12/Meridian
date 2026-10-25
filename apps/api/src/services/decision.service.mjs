@@ -1,9 +1,58 @@
 import { randomBytes, randomUUID } from "node:crypto";
-import { reproduceScore, validateProposal } from "../models/decision.model.mjs";
+import {
+  recomputeCandidate,
+  SCORE_WEIGHTS,
+  validateAiProposal,
+  validateProposal,
+} from "../models/decision.model.mjs";
 
 const clamp = (value, minimum, maximum) =>
   Math.max(minimum, Math.min(maximum, value));
 const iso = (timestamp) => new Date(timestamp).toISOString();
+function segmentLearning(runtime, campaignId, presence) {
+  const segments = ["family", "business", "holiday"];
+  const activities = runtime.store
+    .all("activity")
+    .filter((activity) => activity.campaignId === campaignId);
+  const estimates = Object.fromEntries(
+    segments.map((segment) => {
+      const records = activities.filter(
+        (activity) => activity.segment === segment,
+      );
+      const scans = records.reduce(
+        (sum, activity) => sum + (activity.scans || 0),
+        0,
+      );
+      const redemptions = records.reduce(
+        (sum, activity) => sum + (activity.redemptions || 0),
+        0,
+      );
+      return [
+        segment,
+        {
+          scans,
+          redemptions,
+          conversion: (redemptions + 1) / (scans + 20),
+        },
+      ];
+    }),
+  );
+  const totalShare = segments.reduce(
+    (sum, segment) => sum + (presence.segments[segment] || 0),
+    0,
+  );
+  const adjustment = totalShare
+    ? segments.reduce(
+        (sum, segment) =>
+          sum +
+          ((presence.segments[segment] || 0) / totalShare) *
+            (estimates[segment].conversion - 0.25) *
+            0.1,
+        0,
+      )
+    : 0;
+  return { estimates, adjustment };
+}
 /** Apply hard rules, reproduce candidate scores, validate evidence and publish playlists. */
 export function candidatesService(runtime, screen, presence, campaigns) {
   const now = runtime.clock.time;
@@ -96,39 +145,33 @@ export function candidatesService(runtime, screen, presence, campaigns) {
       last?.category === c.category
     )
       reasons.push("Competitor separation");
-    const total = Object.values(c.weights).reduce((a, b) => a + b, 0) || 1;
-    const match = clamp(
-      (Object.entries(c.weights).reduce(
-        (a, [key, w]) => a + (presence.segments[key] || 0) * w,
-        0,
-      ) /
-        total) *
-        (c.affinity || 1),
-      0,
-      1,
-    );
-    const performance = runtime.metrics(c.outletId);
-    const learned = performance.impressions
-      ? Math.min(0.1, performance.redemptions / performance.impressions)
-      : 0;
+    const learning = segmentLearning(runtime, c.id, presence);
     const boost =
       c.delayTrigger && presence.delay >= c.delayTrigger
         ? 1.5
         : festivalActive
           ? 1.2
           : 1;
-    const factors = {
-      match: +match.toFixed(4),
-      reach: clamp(presence.count / 840, 0, 1),
-      dwell: clamp(presence.dwell / 100, 0, 1),
-      conversion: clamp(c.performance + learned, 0, 1),
-      yield: c.priority || 0,
-      exploration:
-        rules.exploration *
-        ((Number.parseInt(screen.id.slice(1)) % 7) / 7) *
-        0.1,
+    const exploration =
+      rules.exploration * ((Number.parseInt(screen.id.slice(1)) % 7) / 7) * 0.1;
+    const scoreInputs = {
+      presence: {
+        segments: { ...presence.segments },
+        count: presence.count,
+        dwell: presence.dwell,
+      },
+      campaign: {
+        weights: { ...c.weights },
+        affinity: c.affinity || 1,
+        performance: c.performance,
+        priority: c.priority || 0,
+      },
+      learnedConversion: learning.adjustment,
+      exploration,
+      boost,
+      scoreWeights: SCORE_WEIGHTS,
     };
-    const score = reproduceScore(factors, boost);
+    const { factors, score } = recomputeCandidate({ scoreInputs });
     return {
       id: c.id,
       name: c.name,
@@ -140,6 +183,8 @@ export function candidatesService(runtime, screen, presence, campaigns) {
       eligible: !reasons.length,
       reasons,
       factors,
+      scoreInputs,
+      learning,
       goodwillPriority:
         c.category === "goodwill" &&
         c.screenIds?.includes(screen.id) &&
@@ -156,7 +201,7 @@ export function candidatesService(runtime, screen, presence, campaigns) {
     };
   });
 }
-export function decideService(runtime, screen, campaigns, deliver = false) {
+function proposalContext(runtime, screen, campaigns) {
   const presence = runtime.presence(
     screen.zoneId,
     undefined,
@@ -185,6 +230,10 @@ export function decideService(runtime, screen, campaigns, deliver = false) {
         b.timestamp <= runtime.clock.time &&
         b.timestamp + 3600000 > runtime.clock.time,
     );
+  for (const candidate of candidates) {
+    candidate.bookingPriority = candidate.id === booking?.campaignId;
+    candidate.overridePriority = candidate.id === screen.override?.campaignId;
+  }
   let ranked = candidates
     .filter((c) => c.eligible)
     .sort(
@@ -199,21 +248,81 @@ export function decideService(runtime, screen, campaigns, deliver = false) {
     const pin = ranked.find((c) => c.id === screen.override.campaignId);
     if (pin) ranked = [pin, ...ranked.filter((c) => c.id !== pin.id)];
   }
-  if (!fallback && ranked[0]) {
-    const issues = validateProposal(
-      ranked[0],
+  return { presence, candidates, ranked, fallback, mode, booking };
+}
+export function decideService(
+  runtime,
+  screen,
+  campaigns,
+  deliver = false,
+  proposalOverride,
+) {
+  const { presence, candidates, ranked, fallback, mode, booking } =
+    proposalContext(runtime, screen, campaigns);
+  const proposal =
+    proposalOverride ||
+    runtime.aiScorer.rank({
+      presence,
+      candidates: ranked,
+      now: runtime.clock.time,
+    });
+  if (proposal instanceof Promise)
+    throw new Error(
+      "Async AI scorers must be invoked through the evaluation pipeline",
+    );
+  const rejectionReasons = validateAiProposal(
+    proposal,
+    candidates,
+    presence,
+    runtime.clock,
+    (id) => runtime.store.get("flights", id),
+    (id) => runtime.store.get("calendarEvents", id),
+  );
+  const proposedWinner = (proposal?.ranking || [])
+    .map((item) =>
+      candidates.find((candidate) => candidate.id === item.campaignId),
+    )
+    .find((candidate) => candidate?.eligible);
+  const ruleWinner = ranked[0];
+  if (
+    proposedWinner &&
+    ruleWinner &&
+    [
+      "airlinePriority",
+      "goodwillPriority",
+      "bookingPriority",
+      "overridePriority",
+    ].some((key) => proposedWinner[key] !== ruleWinner[key])
+  )
+    rejectionReasons.push(
+      "AI ranking conflicts with deterministic priority rules",
+    );
+  if (!fallback && !rejectionReasons.length && proposedWinner) {
+    const validationIssues = validateProposal(
+      proposedWinner,
       presence,
       runtime.clock,
       (id) => runtime.store.get("flights", id),
       (id) => runtime.store.get("calendarEvents", id),
     );
-    if (issues.length)
-      fallback = "Evidence validation failed: " + issues.join("; ");
+    rejectionReasons.push(...validationIssues);
   }
-  const winner = !fallback ? ranked[0] : undefined;
+  const winner = !fallback
+    ? rejectionReasons.length
+      ? ranked[0]
+      : proposedWinner
+    : undefined;
   if (!winner && !fallback)
     fallback = "No eligible campaign; approved airport information";
+  const source = fallback
+    ? "fallback"
+    : rejectionReasons.length
+      ? "rules"
+      : "ai";
   const c = winner ? campaigns.find((c) => c.id === winner.id) : null;
+  const learningSummary = winner?.learning?.adjustment
+    ? ` Segment learning adjusted the conversion input by ${winner.learning.adjustment.toFixed(3)} using campaign- and audience-specific scans/redemptions.`
+    : "";
   const variant = Number.parseInt(screen.id.slice(1)) % 2 ? "B" : "A";
   const decision = {
     id: randomUUID(),
@@ -245,11 +354,16 @@ export function decideService(runtime, screen, campaigns, deliver = false) {
     evidenceMode: mode,
     validated: !fallback,
     reason: winner
-      ? `${winner.airlinePriority ? "Own-flight boarding priority. " : winner.goodwillPriority ? "Delay goodwill priority on the designated gate screen. " : ""}${c.name} matches ${Math.round(winner.match * 100)}% of this estimated audience${winner.boost > 1 ? ` with a ${winner.boost}× ${winner.triggerReason} boost` : ""}.`
+      ? `${winner.airlinePriority ? "Own-flight boarding priority. " : winner.goodwillPriority ? "Delay goodwill priority on the designated gate screen. " : ""}${c.name} matches ${Math.round(winner.match * 100)}% of this estimated audience${winner.boost > 1 ? ` with a ${winner.boost}× ${winner.triggerReason} boost` : ""}.${source === "ai" ? ` ${proposal?.rationale || ""}` : ""}${learningSummary}`
       : fallback,
     bookingId: booking?.id || null,
     override: screen.override || null,
     fallback,
+    source,
+    rejectionReasons,
+    aiRationale: proposal?.rationale || "",
+    learning: winner?.learning || null,
+    scoreWeights: SCORE_WEIGHTS,
     delivered: deliver && screen.status !== "offline",
   };
   if (c) {
@@ -338,9 +452,10 @@ export function decideService(runtime, screen, campaigns, deliver = false) {
 export function evaluateService(runtime, deliver = true, zoneIds) {
   const started = performance.now();
   const flights = runtime.store.all("flights");
-  for (const z of runtime.store
+  const zones = runtime.store
     .all("zones")
-    .filter((z) => !zoneIds || zoneIds.includes(z.id)))
+    .filter((z) => !zoneIds || zoneIds.includes(z.id));
+  for (const z of zones)
     runtime.presences[z.id] = runtime.presence(z.id, flights);
   const campaigns = runtime.store.all("campaigns");
   runtime.evalContext = {
@@ -371,18 +486,51 @@ export function evaluateService(runtime, deliver = true, zoneIds) {
         (runtime.evalContext.dailyPlays.get(key) || 0) + (a.plays || 0),
       );
     }
-  try {
-    runtime.store.transaction(() => {
-      for (const s of runtime.store
-        .all("screens")
-        .filter((s) => !zoneIds || zoneIds.includes(s.zoneId)))
-        runtime.decide(s, campaigns, deliver);
-      const old = runtime.store.all("decisions");
-      for (const d of old.slice(0, Math.max(0, old.length - 900)))
-        runtime.store.delete("decisions", d.id);
-    });
-  } finally {
-    runtime.evalContext = null;
-  }
-  runtime.playlistMs = performance.now() - started;
+  const screens = runtime.store
+    .all("screens")
+    .filter((s) => !zoneIds || zoneIds.includes(s.zoneId));
+  const proposals = screens.map((screen) => {
+    const { presence, ranked } = proposalContext(runtime, screen, campaigns);
+    try {
+      const proposal = runtime.aiScorer.rank({
+        presence,
+        candidates: ranked,
+        now: runtime.clock.time,
+      });
+      return proposal instanceof Promise
+        ? proposal.catch((error) => ({
+            ranking: [],
+            evidenceIds: [],
+            rationale: "",
+            generatedAt: null,
+            requestError: error.message,
+          }))
+        : proposal;
+    } catch (error) {
+      return {
+        ranking: [],
+        evidenceIds: [],
+        rationale: "",
+        generatedAt: null,
+        requestError: error.message,
+      };
+    }
+  });
+  const publish = (resolvedProposals) => {
+    try {
+      runtime.store.transaction(() => {
+        for (const [index, screen] of screens.entries())
+          runtime.decide(screen, campaigns, deliver, resolvedProposals[index]);
+        const old = runtime.store.all("decisions");
+        for (const d of old.slice(0, Math.max(0, old.length - 900)))
+          runtime.store.delete("decisions", d.id);
+      });
+    } finally {
+      runtime.evalContext = null;
+    }
+    runtime.playlistMs = performance.now() - started;
+  };
+  if (proposals.some((proposal) => proposal instanceof Promise))
+    return Promise.all(proposals).then(publish);
+  return publish(proposals);
 }
