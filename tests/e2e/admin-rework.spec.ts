@@ -118,3 +118,70 @@ test("Admin terminal filters, screen inspection, incident navigation and live de
     }),
   ).toBeVisible();
 });
+
+test("Campaign dialog contains keyboard focus and fits a short mobile viewport", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/retailer");
+
+  const trigger = page.getByRole("button", {
+    name: "Create campaign",
+    exact: true,
+  });
+  await trigger.click();
+  const dialog = page.getByRole("dialog", { name: "campaign", exact: true });
+  await expect(dialog).toBeFocused();
+
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Shift+Tab");
+  expect(
+    await dialog.evaluate((element) =>
+      element.contains(document.activeElement),
+    ),
+  ).toBe(true);
+
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+
+  await trigger.click();
+  await page.setViewportSize({ width: 390, height: 360 });
+  const bounds = await page.locator(".modal").boundingBox();
+  expect(bounds).not.toBeNull();
+  expect(bounds!.y).toBeGreaterThanOrEqual(0);
+  expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(360);
+});
+
+test("Airline timeline markers stay distinct at desktop and phone widths", async ({
+  page,
+}) => {
+  for (const width of [1440, 360]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/airline");
+    const markers = page.locator(".flight-timeline > div");
+    await expect(markers.first()).toBeVisible();
+
+    const bounds = await markers.evaluateAll((elements) =>
+      elements.map((element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          left: rect.left,
+          right: rect.right,
+          top: rect.top,
+          bottom: rect.bottom,
+        };
+      }),
+    );
+    for (let first = 0; first < bounds.length; first += 1) {
+      for (let second = first + 1; second < bounds.length; second += 1) {
+        const overlaps =
+          bounds[first].left < bounds[second].right &&
+          bounds[first].right > bounds[second].left &&
+          bounds[first].top < bounds[second].bottom &&
+          bounds[first].bottom > bounds[second].top;
+        expect(overlaps).toBe(false);
+      }
+    }
+  }
+});

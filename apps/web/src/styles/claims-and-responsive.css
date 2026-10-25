@@ -124,153 +124,13 @@ main > .page-heading ~ * {
   }
 }
 @media (min-width: 1700px) {
-  :root {
-    font-size: 14px;
-  }
-  .sidebar {
-    width: 248px;
-    padding: 30px 20px;
-  }
-  .workspace {
-    margin-left: 248px;
-  }
-  main {
+  .app main {
     padding: 35px 40px 0;
   }
-  header,
-  .simulation {
+  .app .workspace > header,
+  .app .simulation {
     padding-left: 40px;
     padding-right: 40px;
-  }
-  .page-heading h1 {
-    font-size: 34px;
-  }
-  .page-heading p {
-    font-size: 12px;
-  }
-  .eyebrow {
-    font-size: 12px;
-  }
-  .kpi {
-    padding: 22px;
-  }
-  .kpi-top {
-    font-size: 12px;
-  }
-  .kpi-value {
-    font-size: 34px;
-    margin: 20px 0 15px;
-  }
-  .kpi-sub {
-    font-size: 12px;
-  }
-  .panel {
-    padding: 24px;
-  }
-  .panel-heading h2 {
-    font-size: 15px;
-  }
-  .map-panel {
-    padding: 24px 24px 0;
-  }
-  .terminal-map {
-    margin: 0 -24px;
-  }
-  .terminal-map svg {
-    max-height: 460px;
-  }
-  .pulse-highlight h3 {
-    font-size: 46px;
-  }
-  .pulse-highlight h3 small {
-    font-size: 12px;
-  }
-  .segment-bars > div > div,
-  .segment-bars b {
-    font-size: 12px;
-  }
-  .segment-bars {
-    gap: 15px;
-  }
-  .pulse-mini {
-    font-size: 12px;
-  }
-  .ai-note p {
-    font-size: 12px;
-  }
-  .activity-row b,
-  .feed-row b {
-    font-size: 12px;
-  }
-  .activity-row small {
-    font-size: 12px;
-  }
-  .activity-row {
-    padding: 15px 0;
-  }
-  .feed-row > div > span {
-    font-size: 12px;
-  }
-  .performance-strip {
-    font-size: 12px;
-  }
-  .performance-strip b {
-    font-size: 14px;
-  }
-  .badge {
-    font-size: 12px;
-  }
-  .map-toolbar {
-    font-size: 12px;
-  }
-  .map-bottom {
-    font-size: 12px;
-  }
-  .bottom-grid {
-    grid-template-columns: 1.17fr 1fr;
-  }
-  .overview-grid {
-    grid-template-columns: minmax(0, 2.4fr) minmax(300px, 1fr);
-  }
-  nav button {
-    font-size: 12px;
-  }
-  .airport {
-    font-size: 12px;
-  }
-  .brand {
-    font-size: 21px;
-  }
-  .simulation {
-    height: 60px;
-  }
-  .sim-label,
-  .breadcrumb {
-    font-size: 12px;
-  }
-  .sim-time {
-    font-size: 18px;
-  }
-  .sim-date {
-    font-size: 12px;
-  }
-  .header-actions .connection {
-    font-size: 12px;
-  }
-  .role-select select {
-    font-size: 12px;
-  }
-  .footnote {
-    font-size: 12px;
-  }
-  td {
-    font-size: 12px;
-  }
-  th {
-    font-size: 12px;
-  }
-  td b {
-    font-size: 12px;
   }
 }
 @media (max-width: 1250px) {
@@ -1077,15 +937,6 @@ main > .page-heading ~ * {
   footer {
     font-size: 12px;
     padding-bottom: 18px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *:before,
-  *:after {
-    animation: none !important;
-    transition: none !important;
-    scroll-behavior: auto !important;
   }
 }
 .global-search {

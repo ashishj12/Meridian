@@ -298,10 +298,8 @@
 }
 .flight-timeline {
   position: relative;
-  display: flex;
-  justify-content: space-between;
+  width: 100%;
   height: 115px;
-  padding-top: 90px;
   color: var(--muted);
   font-size: 12px;
 }
@@ -310,7 +308,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 65px;
+  bottom: 32px;
   height: 1px;
   background: var(--border);
 }
@@ -329,6 +327,40 @@
 }
 .flight-timeline > div small {
   font-size: 12px;
+}
+.flight-timeline > span {
+  position: absolute;
+  bottom: 0;
+}
+.flight-timeline > span:nth-of-type(1) {
+  left: 0;
+}
+.flight-timeline > span:nth-of-type(2) {
+  left: 25%;
+  transform: translateX(-50%);
+}
+.flight-timeline > span:nth-of-type(3) {
+  left: 50%;
+  transform: translateX(-50%);
+}
+.flight-timeline > span:nth-of-type(4) {
+  left: 75%;
+  transform: translateX(-50%);
+}
+.flight-timeline > span:nth-of-type(5) {
+  right: 0;
+}
+@media (max-width: 600px) {
+  .flight-timeline > div.clustered {
+    padding: 4px;
+  }
+  .flight-timeline > div.single small {
+    display: none;
+  }
+  .flight-timeline > div.clustered small {
+    display: block;
+    font-size: 10px;
+  }
 }
 .message-illustration {
   height: 120px;

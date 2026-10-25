@@ -6,6 +6,7 @@
   --meridian-muted: #a2a79d;
   --meridian-border: #33372f;
   --meridian-soft: #232720;
+  --focus-ring: #d9e8b6;
   --canvas: var(--meridian-canvas);
   --surface: var(--meridian-surface);
   --text: var(--meridian-ink);

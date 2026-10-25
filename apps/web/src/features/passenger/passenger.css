@@ -2100,14 +2100,6 @@
     font-size: 14px;
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .screen-studio *,
-  .studio-compact * {
-    animation: none !important;
-    transition: none !important;
-  }
-}
-
 /* Responsive display refinements */
 /* Studio metadata remains at a readable native size; only the physical player is scaled. */
 .studio-navigation .studio-language {

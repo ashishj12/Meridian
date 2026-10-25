@@ -43,6 +43,8 @@
   padding: 30px;
   background: #030913aa;
   backdrop-filter: blur(6px);
+  animation: modal-backdrop-in var(--motion-standard) var(--motion-ease) both;
+  overscroll-behavior: contain;
 }
 .modal {
   position: relative;
@@ -55,6 +57,9 @@
   border-radius: 14px;
   padding: 32px;
   box-shadow: 0 30px 100px #0005;
+  overscroll-behavior: contain;
+  scroll-padding-block: 18px;
+  animation: modal-content-in var(--motion-standard) var(--motion-ease) both;
 }
 .modal.wide {
   max-width: 1000px;
@@ -195,6 +200,7 @@
   border-radius: 9px;
   font-size: 12px;
   max-width: 80vw;
+  animation: modal-content-in var(--motion-standard) var(--motion-ease) both;
 }
 .toast > svg {
   color: #65bb9a;
@@ -240,6 +246,24 @@
   --border: #29394d;
   --text: #c2d2e9;
   --hover: #1c2c42;
+}
+@keyframes modal-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes modal-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 footer {
   display: flex;

@@ -1,5 +1,5 @@
 import { translateText } from "../../../i18n/index";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Clock3, Monitor, Plane, Ticket, Users } from "lucide-react";
 import { Panel } from "../../../shared/components/Panel";
 import { KPI } from "../../../shared/components/KpiCard";
@@ -13,11 +13,29 @@ import type {
 
 export function Flights(context: WorkspaceContext) {
   const [flights, setFlights] = useState<ApiRecord[]>([]);
+  const [timelineViewport, setTimelineViewport] = useState(window.innerWidth);
+  const [timelineWidth, setTimelineWidth] = useState(0);
+  const timelineRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     api(`/flights?airlineId=${context.airline}&limit=1000`).then((r) =>
       setFlights(r.items),
     );
   }, [context.airline, context.state.clock.sequence]);
+  useEffect(() => {
+    const timeline = timelineRef.current;
+    if (!timeline) return;
+
+    const updateViewport = () => setTimelineViewport(window.innerWidth);
+    const observer = new ResizeObserver((entries) => {
+      setTimelineWidth(entries[0].contentRect.width);
+    });
+    observer.observe(timeline);
+    window.addEventListener("resize", updateViewport);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateViewport);
+    };
+  }, []);
   const list = flights
     .filter((f) => f.direction === "D")
     .sort(
@@ -25,6 +43,40 @@ export function Flights(context: WorkspaceContext) {
         Number(b.id === "XY501") - Number(a.id === "XY501") ||
         Date.parse(a.estimated) - Date.parse(b.estimated),
     );
+  const markerEdge = timelineViewport <= 600 ? 12 : 28;
+  const markerWidth = markerEdge * 2;
+  const laneGap =
+    timelineWidth > 0 ? ((markerWidth + 8) / timelineWidth) * 100 : 10;
+  const timelineClusters: { flights: ApiRecord[]; position: number }[] = [];
+  list
+    .slice(0, 12)
+    .sort((a, b) => Date.parse(a.estimated) - Date.parse(b.estimated))
+    .forEach((flight) => {
+      const rawPosition = Math.max(
+        0,
+        Math.min(
+          100,
+          ((Date.parse(flight.estimated) - Date.parse("2026-10-14T00:00:00Z")) /
+            86400000) *
+            100,
+        ),
+      );
+      const edgePercent =
+        timelineWidth > 0 ? (markerEdge / timelineWidth) * 100 : 0;
+      const position = Math.max(
+        edgePercent,
+        Math.min(100 - edgePercent, rawPosition),
+      );
+      const previous = timelineClusters[timelineClusters.length - 1];
+      if (previous && position - previous.position < laneGap) {
+        previous.flights.push(flight);
+        previous.position =
+          (previous.position * (previous.flights.length - 1) + position) /
+          previous.flights.length;
+      } else {
+        timelineClusters.push({ flights: [flight], position });
+      }
+    });
   return (
     <>
       <div className="kpi-grid">
@@ -61,17 +113,29 @@ export function Flights(context: WorkspaceContext) {
         title={translateText("Today's flight timeline")}
         tag={translateText("LIVE")}
       >
-        <div className="flight-timeline">
-          {list.slice(0, 12).map((f) => (
+        <div ref={timelineRef} className="flight-timeline">
+          {timelineClusters.map((cluster) => (
             <div
-              key={f.id}
+              key={cluster.flights[0].id}
+              className={cluster.flights.length > 1 ? "clustered" : "single"}
+              role="img"
+              aria-label={cluster.flights
+                .map((flight) => `${flight.number} ${time(flight.estimated)}`)
+                .join(", ")}
+              title={cluster.flights
+                .map((flight) => `${flight.number} ${time(flight.estimated)}`)
+                .join(", ")}
               style={{
-                left: `${Math.max(0, Math.min(94, ((Date.parse(f.estimated) - Date.parse("2026-10-14T00:00:00Z")) / 86400000) * 100))}%`,
+                left: `${cluster.position}%`,
+                transform: "translateX(-50%)",
               }}
-              title={`${f.number} ${time(f.estimated)}`}
             >
               <Plane size={14} />
-              <small>{translateText(f.number)}</small>
+              <small>
+                {cluster.flights.length > 1
+                  ? cluster.flights.length
+                  : translateText(cluster.flights[0].number)}
+              </small>
             </div>
           ))}
           <span>{translateText("00:00")}</span>

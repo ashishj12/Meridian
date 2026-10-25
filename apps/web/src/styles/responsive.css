@@ -236,7 +236,7 @@
   }
 
   .app .page-heading h1 {
-    font-size: clamp(23px, 7vw, 30px);
+    font-size: clamp(32px, 7vw, 36px);
   }
 
   .app .page-heading p {
@@ -279,12 +279,16 @@
 
   .app .modal-backdrop {
     align-items: flex-end;
-    padding: 8px;
+    padding: max(8px, env(safe-area-inset-top))
+      max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom))
+      max(8px, env(safe-area-inset-left));
   }
 
   .app .modal {
     width: 100%;
-    max-height: calc(100dvh - 16px);
+    max-height: calc(
+      100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+    );
     padding: 22px 16px;
     border-radius: 12px;
   }
@@ -327,6 +331,22 @@
 
   .claim-card h1 {
     font-size: clamp(27px, 8vw, 34px);
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .app button,
+  .meridian-landing button,
+  .claim-page button,
+  .screen-studio button:not(.airport-player button),
+  .app input:not([type="checkbox"]):not([type="range"]),
+  .app select,
+  .app textarea,
+  .claim-page input:not([type="checkbox"]):not([type="range"]),
+  .claim-page select,
+  .claim-page textarea,
+  .screen-studio select {
+    min-height: 44px !important;
   }
 }
 

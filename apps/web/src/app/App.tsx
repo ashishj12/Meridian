@@ -2,7 +2,7 @@ import { translateText, setLocale } from "../i18n/index";
 import { AppSidebar } from "./layout/AppSidebar";
 import { WorkspaceHeader } from "./layout/WorkspaceHeader";
 import { SimulationBar } from "./layout/SimulationBar";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Download,
   Plus,
@@ -61,6 +61,7 @@ export function App() {
   const [search, setSearch] = useState("");
   const [terminal, setTerminal] = useState("All");
   const [screen, setScreen] = useState("S124");
+  const dialogRef = useRef<HTMLElement | null>(null);
   const live = useLive();
   const state = live.state;
   const t = (key: string) => dictionaries[lang][key] || key;
@@ -104,6 +105,57 @@ export function App() {
     window.addEventListener("popstate", followHistory);
     return () => window.removeEventListener("popstate", followHistory);
   }, []);
+  useEffect(() => {
+    if (!modal) return;
+
+    const dialog = dialogRef.current;
+    const previousFocus =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    dialog?.focus();
+
+    const handleDialogKeys = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.stopPropagation();
+        setModal(null);
+        return;
+      }
+      if (event.key !== "Tab" || !dialog) return;
+
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((element) => element.getClientRects().length > 0);
+
+      if (!focusable.length) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey && (active === first || !dialog.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (
+        !event.shiftKey &&
+        (active === last || !dialog.contains(active))
+      ) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleDialogKeys);
+    return () => {
+      document.removeEventListener("keydown", handleDialogKeys);
+      if (previousFocus?.isConnected) previousFocus.focus();
+    };
+  }, [modal]);
   setLocale(lang);
   if (welcome)
     return <LandingPage language={lang} onLanguageChange={setLang} />;
@@ -393,10 +445,12 @@ export function App() {
             }}
           >
             <section
+              ref={dialogRef}
               role="dialog"
               aria-modal="true"
               aria-label={modal.type}
               className={`modal ${modal.type === "campaign" ? "wide" : ""}`}
+              tabIndex={-1}
             >
               <button
                 className="modal-close"

@@ -10,6 +10,10 @@
   font-size: 13px;
   font-weight: 400;
   color-scheme: light;
+  --motion-fast: 140ms;
+  --motion-standard: 200ms;
+  --motion-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --focus-ring: #4664d8;
 }
 * {
   box-sizing: border-box;
@@ -47,7 +51,7 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 [tabindex]:focus-visible {
-  outline: 2px solid #6c9eff;
+  outline: 2px solid var(--focus-ring);
   outline-offset: 3px;
 }
 a {
@@ -69,9 +73,11 @@ button,
   font-size: 12px;
   font-weight: 550;
   transition:
-    background 0.15s,
-    transform 0.15s,
-    border-color 0.15s;
+    background-color var(--motion-fast) var(--motion-ease),
+    color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
 }
 button:hover,
 .button:hover {
@@ -100,6 +106,15 @@ textarea {
   padding: 9px 10px;
   border-radius: 6px;
   outline: none;
+  transition:
+    border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease);
+}
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--focus-ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus-ring) 18%, transparent);
 }
 select {
   cursor: pointer;
@@ -189,4 +204,14 @@ small {
   --border: #202c3b;
   --hover: #1a2638;
   color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation: none !important;
+    transition: none !important;
+  }
 }
