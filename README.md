@@ -1,106 +1,107 @@
 # Meridian
 
-Meridian is a local demo of airport retail and digital-screen workflows. It uses
-synthetic airport data to show how a flight delay can change an estimated
-audience, influence what a screen displays, and lead to an offer being claimed
-and redeemed.
+Meridian is a local demo of airport retail and digital-screen workflows. It uses synthetic airport data to show how one flight delay can ripple through the whole chain:
 
-This is a demonstration, not a connection to a real airport or an airport
-operations system.
+**delay recorded → audience estimate changes → screen content updates → passenger claims an offer → retailer sees the redemption**
 
-## Run Meridian on your computer
+> **Heads up:** This is a demonstration. It is not connected to a real airport or any airport operations system, and every number you see is generated.
 
-You need **Node.js 24.x** and npm. The project uses Node's built-in SQLite
-support, so use Node 24 rather than an older version.
+**[Try the live demo →](https://meridian-2bcg.onrender.com/)**
 
-Open a terminal in the project folder and run:
+## Contents
+
+- [Quick start](#quick-start)
+- [Explore the demo](#explore-the-demo)
+- [Other ways to run it](#other-ways-to-run-it)
+- [Data and configuration](#data-and-configuration)
+- [Commands](#commands)
+- [Testing](#testing)
+- [Troubleshooting](#troubleshooting)
+- [Project layout](#project-layout)
+- [Limitations](#limitations)
+
+## Quick start
+
+**You'll need:** [Node.js 24.x](https://nodejs.org/) and npm. Meridian relies on Node's built-in SQLite support, so older Node versions won't work.
 
 ```sh
 npm install
 npm run dev
 ```
 
-When the servers have started, open **http://localhost:5173**. The web app and
-API run together: Vite serves the pages on port `5173` and sends API requests
-to the API on port `3001`. You can check that the API is responding at
-http://localhost:3001/api/health.
+Once the servers are up, open **http://localhost:5173**.
 
-To stop both servers, press **Ctrl+C** in the terminal.
+Under the hood, Vite serves the web app on port `5173` and forwards API requests to the API on port `3001`. To confirm the API is healthy, visit http://localhost:3001/api/health. Press **Ctrl+C** in the terminal to stop both servers.
 
-You do not need Docker, a `.env` file, an account, or external API credentials
-for the default demo. On first start, Meridian creates its SQLite database at
-`data/meridian.sqlite` and loads demo data. Changes you make are saved there and
-are still present the next time you start the app.
+No `.env` file, account, or external credentials are needed for the default demo. On first start, Meridian creates its SQLite database at `data/meridian.sqlite` and loads the demo data. Your changes are saved there and will still be present next time you start the app.
 
-## What you can explore
+## Explore the demo
 
-All five workspaces share the same demo and database; they are different views,
-not separate accounts.
+There are five workspaces. They all share the same demo data and database, so think of them as different views of one system rather than separate accounts.
 
-| Open this page | Use it to                                                            |
-| -------------- | -------------------------------------------------------------------- |
-| `/admin`       | View flights and screens, record delays, and control the simulation. |
-| `/retailer`    | Create campaigns and review campaign activity and redemptions.       |
-| `/media`       | Review campaigns and manage advertising screens and slots.           |
-| `/airline`     | View flights and manage partner offers and passenger messages.       |
-| `/passenger`   | View screen content and follow an offer to claim or redeem it.       |
+| Page         | What you can do there                                                |
+| ------------ | -------------------------------------------------------------------- |
+| `/admin`     | View flights and screens, record delays, and control the simulation. |
+| `/retailer`  | Create campaigns and review campaign activity and redemptions.       |
+| `/media`     | Review campaigns and manage advertising screens and slots.           |
+| `/airline`   | View flights and manage partner offers and passenger messages.       |
+| `/passenger` | View screen content and follow an offer to claim or redeem it.       |
 
-For a quick walkthrough:
+### A five-minute walkthrough
 
-1. Open `/admin`, then open `/passenger` in another tab.
+1. Open `/admin`, then open `/passenger` in a second tab.
 2. In the passenger view, select screen `S124`.
-3. In Admin, add a 45-minute delay to flight `XY501`.
-4. Look at the updated screen decision and offer. Then follow the offer in the
-   passenger view and review the activity in `/retailer`.
+3. Back in Admin, add a 45-minute delay to flight `XY501`.
+4. Watch the screen decision and offer update in the passenger view.
+5. Follow the offer to claim and redeem it, then check the resulting activity in `/retailer`.
 
-The audience, flight, and revenue figures in this walkthrough are generated
-for the demo. They are not real airport measurements.
+The audience, flight, and revenue figures are generated for the demo, not measured at a real airport.
 
-## Run a production build locally
+## Other ways to run it
 
-To build the web app and serve it with the API on port `3001`:
+### Production build, locally
+
+Build the web app and serve it together with the API on port `3001`:
 
 ```sh
 npm run build
 npm start
 ```
 
-Then open **http://localhost:3001**. If `dist/index.html` does not exist,
-`npm start` builds the web app first. `npm run preview` does the same thing.
+Then open **http://localhost:3001**. If `dist/index.html` doesn't exist yet, `npm start` builds the web app for you. `npm run preview` behaves the same way.
 
-## Use Docker instead
+### Docker
 
-If you have Docker Desktop installed, you can run the containerized app from the
-project folder:
+If you have Docker Desktop, run the containerized app from the project folder:
 
 ```sh
 docker compose up --build
 ```
 
-Open **http://localhost:3001**. Docker Compose keeps its database in a named
-volume. Stop the app with `docker compose down`; this keeps the database.
-`docker compose down -v` also deletes the volume and its data, so only use it
-when you intend to remove that database.
+Then open **http://localhost:3001**. Docker Compose stores the database in a named volume.
 
-## Data and settings
+| Command                  | Effect                                             |
+| ------------------------ | -------------------------------------------------- |
+| `docker compose down`    | Stops the app and **keeps** your database.         |
+| `docker compose down -v` | Stops the app and **deletes** the volume and data. |
 
-The local database is `data/meridian.sqlite`. Normal starts reuse it, including
-the changes made in the workspaces. The Reset control in Admin restores the
-demo data. The `npm run seed` command also replaces the database contents; stop
-the app first, and use either reset only if you are happy to lose your changes.
+## Data and configuration
 
-By default, flight data and creative generation work offline. You only need
-environment variables if you are changing the database location, setting a
-public URL for QR links, or connecting an external provider. See
-[.env.example](.env.example) for the available settings, but do not copy it
-unchanged: its sample `PUBLIC_BASE_URL` points to a hosted site. Leave that
-setting out for a normal local run, or replace it with an address reachable
-from the device scanning the QR code. Keep real credentials out of source
-control.
+**Database.** The local database lives at `data/meridian.sqlite`. Normal starts reuse it, including any changes you made in the workspaces.
 
-## Useful commands
+**Resetting the demo.** Use the Reset control in Admin to restore the original demo data. Alternatively, `npm run seed` replaces the database contents; stop the app before running it. Either way, you will lose your changes, so only reset when that's what you want.
 
-Run these from the project folder:
+**Environment variables.** By default, flight data and creative generation work offline, so you only need environment variables if you are:
+
+- changing the database location,
+- setting a public URL for QR links, or
+- connecting an external provider.
+
+See [`.env.example`](.env.example) for the available settings, but don't copy it unchanged. Its sample `PUBLIC_BASE_URL` points to a hosted site. For a normal local run, leave that setting out, or replace it with an address that the device scanning the QR code can actually reach. Keep real credentials out of source control.
+
+## Commands
+
+Run these from the project folder.
 
 | Command             | What it does                                |
 | ------------------- | ------------------------------------------- |
@@ -112,27 +113,53 @@ Run these from the project folder:
 | `npm run lint`      | Checks JavaScript syntax and formatting.    |
 | `npm run test:e2e`  | Runs the browser tests with Playwright.     |
 
-The end-to-end tests change the server and database they run against. Use a
-disposable local database, not data you want to keep. If Playwright's browser
-isn't installed yet, install Chromium with:
+## Testing
+
+Unit, API, domain, and production tests run with:
+
+```sh
+npm test
+```
+
+Browser tests use Playwright. If Chromium isn't installed yet:
 
 ```sh
 npx playwright install chromium
 ```
 
+> **Warning:** The end-to-end tests change the server and database they run against. Use a disposable local database, never data you want to keep.
+
+## Troubleshooting
+
+**Errors about SQLite or unsupported modules on startup.** Check your Node version with `node -v`. Meridian needs Node 24.x.
+
+**A port is already in use.** The dev setup uses `5173` and `3001`. Stop whatever else is using them, or close any earlier Meridian process still running.
+
+**The page loads but data is missing.** Confirm the API is up at http://localhost:3001/api/health.
+
+**The QR code doesn't work from my phone.** The phone must be able to reach the address encoded in the QR link. Set `PUBLIC_BASE_URL` to an address reachable from that device (for example, your computer's local network address).
+
+**The demo data looks wrong after experimenting.** Use the Reset control in Admin to restore it.
+
 ## Project layout
 
-- `apps/api/` contains the API, simulation, database access, and feed adapters.
-- `apps/web/` contains the React app and its five workspaces.
-- `packages/shared-types/` contains types shared by the app and adapters.
-- `migrations/` contains ordered SQLite schema updates.
-- `fixtures/` contains synthetic feed examples and reference schemas.
-- `tests/` contains API, domain, production, and browser tests.
-- `docs/ARCHITECTURE.md` explains how the parts fit together.
+| Path                     | Contents                                                 |
+| ------------------------ | -------------------------------------------------------- |
+| `apps/api/`              | The API, simulation, database access, and feed adapters. |
+| `apps/web/`              | The React app and its five workspaces.                   |
+| `packages/shared-types/` | Types shared by the app and adapters.                    |
+| `migrations/`            | Ordered SQLite schema updates.                           |
+| `fixtures/`              | Synthetic feed examples and reference schemas.           |
+| `tests/`                 | API, domain, production, and browser tests.              |
+| `docs/ARCHITECTURE.md`   | How the parts fit together. Start here to dig deeper.    |
 
-## A note about the demo
+## Limitations
 
-Flights, audience estimates, queue readings, forecasts, and revenue are
-synthetic. Meridian does not provide airport operations, authentication,
-payment processing, or individual passenger tracking. Treat the figures as
-examples, not operational measurements or revenue guarantees.
+Flights, audience estimates, queue readings, forecasts, and revenue are all synthetic. Meridian does **not** provide:
+
+- airport operations,
+- authentication,
+- payment processing, or
+- individual passenger tracking.
+
+Treat every figure as an example, not an operational measurement or a revenue guarantee.
