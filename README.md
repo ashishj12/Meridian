@@ -14,6 +14,8 @@ Meridian is a local demo of airport retail and digital-screen workflows. It uses
 - [Explore the demo](#explore-the-demo)
 - [Other ways to run it](#other-ways-to-run-it)
 - [Data and configuration](#data-and-configuration)
+- [Why this stack](#why-this-stack)
+- [Demo script under 1 minute](#demo-script-under-1-minute)
 - [Commands](#commands)
 - [Testing](#testing)
 - [Troubleshooting](#troubleshooting)
@@ -63,6 +65,14 @@ There are five workspaces. They all share the same demo data and database, so th
 
 The audience, flight, and revenue figures are generated for the demo, not measured at a real airport.
 
+## Demo script under 1 minute
+
+1. Open `/admin` and inject a 45-minute delay for `XY501`.
+2. Point to the updated screen decision, then open `/passenger` and claim the offer from its QR flow.
+3. Open `/retailer` to show the resulting scan/redemption activity.
+
+This is a scripted synthetic scenario, not a live airport feed.
+
 ## Other ways to run it
 
 ### Production build, locally
@@ -96,6 +106,19 @@ Then open **http://localhost:3001**. If `dist/index.html` doesn't exist yet, `np
 - connecting an external provider.
 
 See [`.env.example`](.env.example) for the available settings. For a normal local run, leave `PUBLIC_BASE_URL` unset so QR links use the laptop's LAN IP, or set it to an address that the scanning device can reach. The hosted demo sets this variable explicitly. Keep real credentials out of source control.
+
+## Why this stack
+
+- **Node.js** provides one JavaScript runtime for the API, scripts and tooling, with built-in SQLite support.
+- **Express** keeps the HTTP boundary small and makes the adapter, validation and application-service layers easy to inspect.
+- **SQLite** gives the local demo durable, transactional state without requiring a separate database service.
+- **React** supports the five role-specific workspaces over the same shared state.
+- **Vite** provides a fast local development server and production web build.
+- **Server-Sent Events (SSE)** deliver one-way live updates from the API without polling or a separate message broker.
+
+These choices suit a single-host proof of concept; they are not a recommendation to run a multi-host airport operations platform on one SQLite file.
+
+API reference: run the app and open [`/api/docs`](http://localhost:3001/api/docs), or fetch the OpenAPI document at [`/api/openapi.json`](http://localhost:3001/api/openapi.json). Adapter contracts and a vendor example are in [the adapter guide](docs/ADAPTER_GUIDE.md).
 
 ## Commands
 

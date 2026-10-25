@@ -136,7 +136,44 @@ test("HTTP campaign lifecycle, booking conflicts, QR rendering, validation and m
       (await req("/simulation/control", { speed: 500 })).status,
       400,
     );
-    assert.equal((await req("/openapi.json")).data.openapi, "3.1.0");
+    const specification = (await req("/openapi.json")).data;
+    assert.equal(specification.openapi, "3.1.0");
+    assert.ok(specification.paths["/api/campaigns/{id}"].patch);
+    assert.deepEqual(
+      specification.paths["/api/campaigns/{id}"].patch.parameters[0],
+      {
+        name: "id",
+        in: "path",
+        required: true,
+        schema: { type: "string", minLength: 1 },
+      },
+    );
+    assert.ok(
+      specification.paths["/api/campaigns"].post.requestBody.content[
+        "application/json"
+      ].schema.required.includes("zoneIds"),
+    );
+    assert.deepEqual(
+      specification.components.schemas.SimulationEvent.properties.type.enum,
+      [
+        "delay",
+        "gate-change",
+        "screen-offline",
+        "boarding",
+        "departure",
+        "arrival",
+        "cancellation",
+        "evidence",
+        "feed-lag",
+        "creative-failure",
+      ],
+    );
+    for (const operations of Object.values(specification.paths))
+      for (const operation of Object.values(operations))
+        assert.ok(Object.keys(operation.responses).length > 0);
+    const docs = await fetch(base + "/docs");
+    assert.equal(docs.status, 200);
+    assert.match(await docs.text(), /redoc spec-url="\/api\/openapi\.json"/);
   } finally {
     server.closeAllConnections();
     await new Promise((r) => server.close(r));

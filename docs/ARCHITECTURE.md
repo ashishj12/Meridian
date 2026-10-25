@@ -3,16 +3,42 @@
 Meridian has a React client, a Node API and a local SQLite database. The API owns simulation time, decisions and persisted state; browsers display that shared state rather than simulating it themselves.
 
 ```mermaid
-flowchart LR
-  Browser[React app] --> Routes[HTTP routes]
-  Routes --> Controllers[Controllers and validation]
-  Controllers --> Services[Application services]
-  Services --> Repository[Repository]
-  Repository --> SQLite[(SQLite)]
-  Feeds[AODB / AIDX / ACRIS] --> Adapters[Adapters]
-  Adapters --> Services
-  Services --> SSE[Server-sent events]
-  SSE --> Browser
+flowchart TB
+  subgraph Web["Presentation layer"]
+    Browser["React workspaces<br/>Admin · Retailer · Media · Airline · Passenger"]
+  end
+  subgraph API["HTTP / application layer"]
+    Routes["Express routes"]
+    Controllers["Controllers + Zod validation"]
+    Services["Application services"]
+  end
+  subgraph Domain["Decision pipeline"]
+    Profile["Profile"]
+    Filter["Filter eligible campaigns"]
+    Score["Score audience match"]
+    Rules["Apply business rules"]
+    Validate["Independently validate evidence and score"]
+    Choose["Choose, persist and log"]
+    Learn["Learn from scans and redemptions"]
+    Profile --> Filter --> Score --> Rules --> Validate --> Choose --> Learn
+  end
+  subgraph Adapters["Adapter boundary"]
+    AODB["AODB source"]
+    AIDX["AIDX source"]
+    ACRIS["ACRIS source"]
+    Creative["Creative provider"]
+  end
+  Repo["Entity repository"] --> SQLite[("SQLite")]
+  Browser -->|"HTTP / JSON"| Routes --> Controllers --> Services --> Profile
+  Services --> Repo
+  AODB -->|"canonical flights"| Services
+  AIDX -->|"validated events"| Services
+  ACRIS -->|"canonical queues"| Services
+  Creative -->|"reviewable creative"| Services
+  Choose --> Repo
+  Learn --> Repo
+  Services --> Publisher["SSE event publisher"]
+  Publisher -->|"event: update · sequence · simulation time"| Browser
 ```
 
 ## Where things live
@@ -28,9 +54,13 @@ flowchart LR
 1. The API validates the delay command and passes it to the simulation service.
 2. A coordinated write updates the flight, its gate assignment and the event record.
 3. The service recalculates affected audiences and requests new screen decisions.
-4. The decision service filters and scores campaigns. `models/decision.model.mjs` checks the proposed result against trusted evidence. If the evidence is invalid, the system uses approved airport information instead.
+4. The decision service profiles the nearby audience, filters candidates, scores audience fit, applies business rules, validates the result against trusted evidence, then chooses and logs a campaign. Invalid evidence uses the safe rule-based choice.
 5. The API publishes an event. Connected clients refresh their view from the shared state.
 6. QR scans, claims and redemptions are stored as separate events; redemptions affect reporting and later decisions.
+
+## Live update flow
+
+The API owns the shared simulation clock and publishes state changes as Server-Sent Events at `/api/events`. Each event carries its sequence and simulation time. The browser keeps one EventSource connection, receives `update` events and refreshes the relevant shared state; a reconnect can therefore catch up from the server-owned state rather than running a second clock in the browser. The stream is one-way (server to client); commands such as delay injection remain ordinary validated HTTP requests.
 
 ## State and process limits
 

@@ -95,6 +95,20 @@ export function createApp({
   app.get("/api/openapi.json", (req, res) =>
     res.json(createSpecification(routes, campaignSchema)),
   );
+  app.get("/api/docs", (req, res) =>
+    res.type("html").send(`<!doctype html>
+<html>
+  <head>
+    <title>MERIDIAN API documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>body{margin:0}redoc{display:block}</style>
+  </head>
+  <body>
+    <redoc spec-url="/api/openapi.json"></redoc>
+    <script src="https://cdn.jsdelivr.net/npm/redoc@2/bundles/redoc.standalone.js"></script>
+  </body>
+</html>`),
+  );
   const web = path.resolve("dist");
   app.use(express.static(web));
   app.get("/{*path}", (req, res) => {
