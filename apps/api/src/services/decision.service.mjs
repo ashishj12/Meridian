@@ -124,11 +124,9 @@ export function candidatesService(runtime, screen, presence, campaigns) {
       conversion: clamp(c.performance + learned, 0, 1),
       yield: c.priority || 0,
       exploration:
-        presence.id === "Z7" && ["C1", "C2", "C3"].includes(c.id)
-          ? 0
-          : rules.exploration *
-            ((Number.parseInt(screen.id.slice(1)) % 7) / 7) *
-            0.1,
+        rules.exploration *
+        ((Number.parseInt(screen.id.slice(1)) % 7) / 7) *
+        0.1,
     };
     const score = reproduceScore(factors, boost);
     return {
@@ -159,7 +157,12 @@ export function candidatesService(runtime, screen, presence, campaigns) {
   });
 }
 export function decideService(runtime, screen, campaigns, deliver = false) {
-  const presence = runtime.presences[screen.zoneId];
+  const presence = runtime.presence(
+    screen.zoneId,
+    undefined,
+    runtime.clock.time,
+    screen,
+  );
   const candidates = runtime.candidates(screen, presence, campaigns);
   let fallback = null;
   const mode = runtime.clock.evidenceMode;

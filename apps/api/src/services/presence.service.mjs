@@ -1,5 +1,4 @@
 import { calendarEvidence } from "./calendar.service.mjs";
-import { timeAt } from "../database/seed.mjs";
 
 const clamp = (value, minimum, maximum) =>
   Math.max(minimum, Math.min(maximum, value));
@@ -10,10 +9,11 @@ export function presenceService(
   zoneId,
   flights = runtime.store.all("flights"),
   atTime = runtime.clock.time,
+  screen,
 ) {
   const time = atTime;
   const queue = runtime.store.all("queues").find((q) => q.zoneId === zoneId);
-  let nearby = flights.filter(
+  const nearby = flights.filter(
     (f) =>
       f.zoneId === zoneId &&
       f.direction === "D" &&
@@ -21,11 +21,30 @@ export function presenceService(
       Date.parse(f.estimated) > time &&
       Date.parse(f.estimated) < time + 2 * 3600000,
   );
-  if (zoneId === "Z7" && time >= timeAt(13, 40) && time <= timeAt(14, 40))
-    nearby = nearby.filter((f) => ["XY501", "ZQ88"].includes(f.id));
   const entries = nearby.map((f) => {
-    const dwell = Math.max(0, (Date.parse(f.estimated) - time) / 60000 - 20);
-    return { f, dwell, weight: f.pax * clamp(dwell / 45, 0, 1) };
+    const estimatedDeparture = Date.parse(f.estimated);
+    const boardingTime = f.tobt
+      ? Date.parse(f.tobt)
+      : estimatedDeparture - 20 * 60000;
+    const timeToBoarding = Math.max(0, (boardingTime - time) / 60000);
+    const dwell = Math.max(0, (estimatedDeparture - time) / 60000 - 20);
+    const gateDistance =
+      screen && screen.nearestGates?.includes(f.gate)
+        ? 0
+        : screen
+          ? Math.abs(
+              Number.parseInt(screen.gate, 10) - Number.parseInt(f.gate, 10),
+            )
+          : 0;
+    const gateWeight = screen ? 1 / (1 + gateDistance) : 1;
+    const boardingWeight = clamp(timeToBoarding / 45, 0, 1);
+    return {
+      f,
+      dwell,
+      timeToBoarding,
+      gateDistance,
+      weight: f.pax * boardingWeight * gateWeight,
+    };
   });
   const sum = entries.reduce((a, e) => a + e.weight, 0);
   const avg = (k) =>
@@ -79,6 +98,14 @@ export function presenceService(
     languages: nearby[0]?.profile?.languages || ["English", "हिन्दी"],
     age: nearby[0]?.profile?.age || {},
     flightIds: nearby.map((f) => f.id),
+    flightWeights: entries.map((entry) => ({
+      flightId: entry.f.id,
+      gateDistance: Number.isFinite(entry.gateDistance)
+        ? entry.gateDistance
+        : null,
+      timeToBoarding: Math.round(entry.timeToBoarding),
+      weight: +(entry.weight / (entry.f.pax || 1)).toFixed(4),
+    })),
     queueIds: queue ? [queue.id] : [],
     evidence: nearby.map((f) => ({
       id: f.id,

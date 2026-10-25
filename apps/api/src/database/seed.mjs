@@ -156,7 +156,8 @@ export function seed(store) {
   });
   for (let i = 320; i < 898; i++) {
     const intl = i % 10 >= 5;
-    const scheduled = timeAt(0) + ((i * 97) % 1440) * 60000;
+    const zoneNumber = 1 + (i % 10);
+    const scheduled = timeAt(0) + ((i * 97 + zoneNumber * 137) % 1440) * 60000;
     flights.push({
       id: `F${i}`,
       number: codes[i % 10] + (100 + i),
@@ -245,20 +246,22 @@ export function seed(store) {
         seats: f.seats,
       });
   });
-  for (let i = 0; i < 180; i++)
+  for (let i = 0; i < 180; i++) {
+    const gate = String(1 + Math.floor(i / 3));
     store.put("screens", {
       id: `S${String(i + 1).padStart(3, "0")}`,
       name: `MQI-${i < 90 ? "T1" : "T2"}-${String(i + 1).padStart(3, "0")}`,
       zoneId: `Z${1 + Math.floor(i / 18)}`,
       terminal: i < 90 ? "T1" : "T2",
-      gate: String(1 + Math.floor(i / 3)),
-      nearestGates: [String(1 + Math.floor(i / 3))],
+      gate,
+      nearestGates: [String(Math.max(1, Number(gate) - 1)), gate],
       size: 55,
       orientation: i % 4 === 0 ? "portrait" : "landscape",
       status: i === 11 ? "offline" : i % 31 === 0 ? "degraded" : "online",
       latency: 28 + (i % 65),
       offlineSince: i === 11 ? timeAt(14) : null,
     });
+  }
   const brands = [
     "Aurelia Duty Free",
     "Juniper Coffee",
@@ -357,13 +360,7 @@ export function seed(store) {
             ? { family: 1 }
             : { business: 0.7, premium: 0.3 },
       affinity:
-        i === 0
-          ? 0.71 / 0.648
-          : i === 1
-            ? 0.49 / 0.31
-            : i === 2
-              ? 0.18 / 0.199
-              : 1,
+        i === 0 ? 0.71 / 0.648 : i === 1 ? 0.49 / 0.31 : i === 2 ? 0.58 : 1,
       minimumCrowd: 0,
       minimumDwell: 0,
       internationalOnly: false,
@@ -376,7 +373,7 @@ export function seed(store) {
       start: iso(timeAt(0)),
       end: iso(timeAt(23, 59) + 7 * 86400000),
       performance: i === 0 ? 0.7066666667 : i === 1 ? 0.78 : 0.75,
-      priority: i === 0 ? 0.5 : i === 1 ? 1 : 0,
+      priority: i === 0 ? 0.5 : i === 1 ? 0.36 : 0,
       color: i === 0 ? "#d8bea0" : i === 1 ? "#aacdbd" : "#b8c6df",
       createdAt: iso(timeAt(10)),
     });
@@ -406,7 +403,7 @@ export function seed(store) {
     priority: 0.25,
   });
   const toy = store.get("campaigns", "C2");
-  store.put("campaigns", { ...toy, priority: 0.46 });
+  store.put("campaigns", { ...toy, priority: 0.36 });
   const lounge = store.get("campaigns", "C3");
   store.put("campaigns", { ...lounge, performance: 0, priority: 0 });
   store.put("incidents", {

@@ -70,8 +70,9 @@ export class AirportEngine {
     zoneId,
     flights = this.store.all("flights"),
     atTime = this.clock.time,
+    screen,
   ) {
-    return presenceService(this, zoneId, flights, atTime);
+    return presenceService(this, zoneId, flights, atTime, screen);
   }
   metrics(outletId, airlineId) {
     return metricsService(this, outletId, airlineId);

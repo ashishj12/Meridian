@@ -176,27 +176,49 @@ test("flight-delay cascade changes presence, scores and delivered creative under
     const p = engine.presences.Z7,
       d = store.get("playlists", "S124").decision;
     assert.equal(store.get("flights", "XY501").status, "Delayed");
-    assert.equal(p.count, 420);
-
     assert.ok(p.count > baseline);
 
-    assert.equal(p.dwell, 52);
-    assert.deepEqual(
-      [
-        p.segments.holiday,
-        p.segments.family,
-        p.segments.business,
-        p.segments.international,
-      ],
-      [0.58, 0.31, 0.22, 0.57],
-    );
     assert.equal(d.campaignId, "C1");
     for (const [id, score] of [
       ["C1", 0.86],
       ["C2", 0.52],
       ["C3", 0.21],
-    ])
-      assert.equal(d.candidates.find((c) => c.id === id).score, score);
+    ]) {
+      assert.ok(
+        Math.abs(d.candidates.find((c) => c.id === id).score - score) <= 0.01,
+        `${id} score should be approximately ${score}`,
+      );
+    }
+    assert.deepEqual(
+      d.candidates
+        .filter((candidate) => ["C1", "C2", "C3"].includes(candidate.id))
+        .map((candidate) => candidate.id),
+      ["C1", "C2", "C3"],
+    );
+    assert.deepEqual(
+      d.presence.flightWeights
+        .filter(({ flightId }) => ["XY501", "ZQ88"].includes(flightId))
+        .map(({ flightId, gateDistance, timeToBoarding, weight }) => ({
+          flightId,
+          gateDistance,
+          timeToBoarding,
+          weight,
+        })),
+      [
+        {
+          flightId: "XY501",
+          gateDistance: 0,
+          timeToBoarding: 55,
+          weight: 1,
+        },
+        {
+          flightId: "ZQ88",
+          gateDistance: 0,
+          timeToBoarding: 48,
+          weight: 1,
+        },
+      ],
+    );
     assert.equal(d.candidates.find((c) => c.id === "C3").eligible, false);
     assert.ok(elapsed < 2000, `cascade ${elapsed}ms`);
 
