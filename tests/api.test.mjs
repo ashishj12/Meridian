@@ -32,6 +32,17 @@ test("HTTP campaign lifecycle, booking conflicts, QR rendering, validation and m
   };
   try {
     assert.equal((await req("/health")).data.status, "ok");
+    const prewarmed = instance.engine.snapshot().metrics;
+    const prewarmedRevenue = instance.engine.metrics("O1").revenue;
+    assert.ok(prewarmed.plays > 0);
+    assert.ok(prewarmed.impressions > 0);
+    assert.ok(prewarmed.scans > 0);
+    assert.ok(prewarmed.revenue > 0);
+    const runtimeSnapshot = (await req("/state")).data;
+    assert.ok(Number.isFinite(runtimeSnapshot.performance.apiP95));
+    assert.ok(runtimeSnapshot.performance.uptimeSeconds >= 0);
+    assert.equal("uptime" in runtimeSnapshot.performance, false);
+
     const flight = instance.store.get("flights", "XY501");
 
     const xml = createAidxMessage(
@@ -47,6 +58,14 @@ test("HTTP campaign lifecycle, booking conflicts, QR rendering, validation and m
     instance.engine.reset();
 
     assert.equal((await req("/flights?limit=1000")).data.total, 900);
+    const inventory = (await req("/inventory")).data;
+    assert.ok(inventory.bookings.length > 0);
+    assert.ok(inventory.slotForecasts["Z1:0"]);
+    const premiumHours = (zoneId) =>
+      Object.entries(inventory.slotForecasts)
+        .filter(([key, slot]) => key.startsWith(`${zoneId}:`) && slot.premium)
+        .map(([key]) => key.split(":")[1]);
+    assert.notDeepEqual(premiumHours("Z1"), premiumHours("Z7"));
     assert.equal((await req("/campaigns", { name: "" })).status, 400);
 
     const original = (await req("/campaigns")).data[0];
@@ -122,7 +141,7 @@ test("HTTP campaign lifecycle, booking conflicts, QR rendering, validation and m
     );
     assert.equal(
       (await req("/analytics/retailer?outletId=O1")).data.revenue,
-      24,
+      prewarmedRevenue + 24,
     );
     const creative = (
       await req("/creatives/generate", {

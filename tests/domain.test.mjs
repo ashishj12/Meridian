@@ -16,6 +16,7 @@ import {
 import { profile, timeAt } from "../apps/api/src/database/seed.mjs";
 import { validateProposal } from "../apps/api/src/models/decision.model.mjs";
 import { validateAidxXml } from "../apps/api/src/adapters/aidx-validation.mjs";
+import { createCreativesController } from "../apps/api/src/controllers/creatives.controller.mjs";
 import {
   LlmAiScorer,
   OfflineHeuristicScorer,
@@ -185,6 +186,7 @@ test("hallucinated evidence, stale AI timestamps and invented scores fall back t
 test("one broadcast QR issues distinct single-use claim tokens without collecting identity", () => {
   const { store, engine } = setup();
   try {
+    const initial = engine.metrics("O1");
     engine.event({ type: "delay", minutes: 45 });
     const root = store.get("playlists", "S124").decision.promo.id;
 
@@ -199,8 +201,8 @@ test("one broadcast QR issues distinct single-use claim tokens without collectin
 
       assert.throws(() => engine.promo(p.id, "redeem"), /Already redeemed/);
     }
-    assert.equal(engine.metrics("O1").redemptions, 2);
-    assert.equal(engine.metrics("O1").scans, 2);
+    assert.equal(engine.metrics("O1").redemptions, initial.redemptions + 2);
+    assert.equal(engine.metrics("O1").scans, initial.scans + 2);
   } finally {
     store.close();
   }
@@ -323,7 +325,10 @@ test("seed has required counts, thirty history days, valid gate/zone/terminal re
     }
     assert.equal(
       new Set(
-        store.all("activity").map((a) => Math.floor(a.timestamp / 86400000)),
+        store
+          .all("activity")
+          .filter((activity) => activity.historical)
+          .map((a) => Math.floor(a.timestamp / 86400000)),
       ).size,
       30,
     );
@@ -457,6 +462,23 @@ test("flight-delay cascade changes presence, scores and delivered creative under
   }
 });
 
+test("passenger flow forecasts vary by departure interval and summarize next-hour traffic", () => {
+  const { store, engine } = setup();
+  try {
+    const presence = engine.presence("Z7");
+    assert.equal(presence.forecasts.length, 8);
+    assert.ok(
+      new Set(presence.forecasts.map(({ count }) => count)).size > 1,
+      "15-minute forecasts should reflect the departure schedule",
+    );
+    assert.ok(presence.next60.pax > 0);
+    assert.ok(presence.next60.destinations.includes("DXB"));
+    assert.ok(presence.next60.nationalities.length > 0);
+  } finally {
+    store.close();
+  }
+});
+
 test("all evidence failure modes reject proposals and persist a safe fallback", () => {
   const { store, engine } = setup();
   try {
@@ -510,6 +532,7 @@ test("hard rules exclude stock, approval, placement, daily caps, frequency and s
 test("promotions distinguish scans, claims, redemption, family sharing, duplicate rejection and expiry", () => {
   const { store, engine } = setup();
   try {
+    const initial = engine.metrics("O1");
     engine.event({ type: "delay", minutes: 45 });
     const token = store.get("playlists", "S124").decision.promo.id;
     assert.match(token, /^[0-9a-f]{48}$/);
@@ -517,17 +540,17 @@ test("promotions distinguish scans, claims, redemption, family sharing, duplicat
     assert.throws(() => engine.promo(token, "redeem"), /Claim/);
     engine.promo(token, "scan");
 
-    assert.equal(engine.metrics("O1").revenue, 0);
+    assert.equal(engine.metrics("O1").revenue, initial.revenue);
     engine.promo(token, "claim");
 
-    assert.equal(engine.metrics("O1").redemptions, 0);
+    assert.equal(engine.metrics("O1").redemptions, initial.redemptions);
     engine.promo(token, "redeem");
     const m = engine.metrics("O1");
-    assert.equal(m.scans, 1);
-    assert.equal(m.claims, 1);
+    assert.equal(m.scans, initial.scans + 1);
+    assert.equal(m.claims, initial.claims + 1);
 
-    assert.equal(m.redemptions, 1);
-    assert.equal(m.revenue, 24);
+    assert.equal(m.redemptions, initial.redemptions + 1);
+    assert.equal(m.revenue, initial.revenue + 24);
     assert.throws(() => engine.promo(token, "redeem"), /Already redeemed/);
 
     const child = engine.promo(token, "share");
@@ -605,10 +628,69 @@ test("booking-aware slot recommendations rank three distinct available slots", (
     assert.equal(recs.length, 3);
 
     assert.equal(new Set(recs.map((r) => r.id)).size, 3);
+    assert.equal(new Set(recs.map((r) => r.screenId)).size, 3);
+    assert.equal(
+      new Set(recs.map((r) => new Date(r.timestamp).getUTCHours())).size,
+      3,
+    );
+    assert.equal(new Set(recs.map((r) => r.impressions)).size, 3);
     const r = recs[0];
     store.put("bookings", { ...r, id: "reserved" });
 
     assert.ok(!engine.recommendations("C1").some((x) => x.id === r.id));
+  } finally {
+    store.close();
+  }
+});
+
+test("feed lag incidents are raised and resolved using actual ingestion time", () => {
+  const { store, engine } = setup();
+  try {
+    engine.feedMonitorStartedAt = Date.now() - 61000;
+    engine.tick();
+    const incident = store
+      .all("incidents")
+      .find(
+        (item) =>
+          item.automatic && item.type === "feed-lag" && item.feed === "AIDX",
+      );
+    assert.ok(incident);
+    assert.equal(incident.severity, "high");
+    assert.equal(incident.owner, "Airport data operations");
+
+    engine.recordFeed("AIDX");
+    engine.tick();
+    assert.equal(store.get("incidents", incident.id).status, "resolved");
+  } finally {
+    store.close();
+  }
+});
+
+test("creative provider failures automatically raise owned incidents", async () => {
+  const { store, engine } = setup();
+  const controller = createCreativesController(
+    { act: (handler) => handler, engine },
+    () => ({
+      async generate() {
+        throw new Error("Creative endpoint unavailable");
+      },
+    }),
+  );
+  try {
+    await assert.rejects(
+      controller.generate(
+        { body: { brief: "Campaign brief", campaignId: "C1" } },
+        { json() {} },
+      ),
+      /Creative endpoint unavailable/,
+    );
+    const incident = store
+      .all("incidents")
+      .find((item) => item.type === "creative-failure");
+    assert.ok(incident);
+    assert.equal(incident.owner, "Creative operations");
+    assert.equal(incident.campaignId, "C1");
+    assert.equal(store.get("campaigns", "C1").creativeApproved, false);
   } finally {
     store.close();
   }

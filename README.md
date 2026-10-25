@@ -65,6 +65,13 @@ There are five workspaces. They all share the same demo data and database, so th
 
 The audience, flight, and revenue figures are generated for the demo, not measured at a real airport.
 
+The demo starts with earlier simulated activity so dashboards show non-zero
+plays, scans, and revenue immediately. Inventory combines seeded bookings with
+zone-specific hourly footfall forecasts, and retailer passenger flow is
+calculated from upcoming departures in 15-minute intervals. Admin feed health,
+API latency, uptime, and operational incidents are derived from runtime events
+rather than fixed demo values.
+
 ## Demo script under 1 minute
 
 1. Open `/admin` and inject a 45-minute delay for `XY501`.

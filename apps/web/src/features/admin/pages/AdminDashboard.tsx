@@ -26,6 +26,19 @@ import type {
   WorkspaceContext,
 } from "../../../shared/types/workspace";
 
+const formatUptime = (seconds: number) => {
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  return days
+    ? `${days}d ${hours}h`
+    : hours
+      ? `${hours}h ${minutes}m`
+      : minutes
+        ? `${minutes}m ${seconds % 60}s`
+        : `${seconds}s`;
+};
+
 export function AdminOverview(context: WorkspaceContext) {
   const { state, setModal, search, terminal, setTerminal, setPage } = context;
   const screens = state.screens;
@@ -356,16 +369,15 @@ export function AdminOverview(context: WorkspaceContext) {
               </b>
             </span>
             <span>
-              {translateText("7d uptime ")}
+              {translateText("API uptime ")}
               <b>
-                {translateText(state.performance.uptime)}
-                {translateText("%*")}
+                {translateText(formatUptime(state.performance.uptimeSeconds))}
               </b>
             </span>
           </div>
           <small className="footnote">
             {translateText(
-              "*Seeded demonstration telemetry; build/API durations measured locally.",
+              "Process uptime and API p95 use live runtime measurements; playlist build time is measured locally.",
             )}
           </small>
         </Panel>

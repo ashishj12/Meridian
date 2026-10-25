@@ -30,6 +30,7 @@ export class AirportEngine {
   constructor(store, { aiScorer = createAiScorer() } = {}) {
     this.store = store;
     this.aiScorer = aiScorer;
+    this.feedMonitorStartedAt = Date.now();
     this.evaluationQueue = Promise.resolve();
     this.listeners = new Set();
     store.transaction(() => {
@@ -39,7 +40,13 @@ export class AirportEngine {
     this.clock = store.get("simulation", "clock");
     for (const name of ["AODB", "AIDX", "ACRIS"])
       if (!store.get("feeds", name))
-        this.recordFeed(name, name === "AIDX" ? false : true);
+        this.recordFeed(
+          name,
+          name === "AIDX" ||
+            (name === "AODB" && process.env.FLIGHT_SOURCE === "vendor-api")
+            ? false
+            : true,
+        );
     this.presences = {};
     if (!store.all("playlists").length) {
       this.updateScheduledFlights();
@@ -124,8 +131,8 @@ export class AirportEngine {
   promo(token, action, options = {}) {
     return promoService(this, token, action, options);
   }
-  forecast(zoneId, timestamp) {
-    return forecastService(this, zoneId, timestamp);
+  forecast(zoneId, timestamp, screen) {
+    return forecastService(this, zoneId, timestamp, screen);
   }
   quote(screenId, timestamp) {
     return quoteService(this, screenId, timestamp);

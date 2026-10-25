@@ -43,6 +43,43 @@ export function emitService(runtime, type, detail = {}) {
       ...detail,
     });
 }
+function monitorFeedLag(runtime) {
+  const now = Date.now();
+  const reference = runtime.feedMonitorStartedAt || now;
+  for (const name of ["AODB", "AIDX", "ACRIS"]) {
+    const feed = runtime.store.get("feeds", name);
+    const lastMessage = Math.max(feed?.lastUpdate || 0, reference);
+    const lagging = now - lastMessage > 60000;
+    const incident = runtime.store
+      .all("incidents")
+      .find(
+        (item) =>
+          item.automatic &&
+          item.type === "feed-lag" &&
+          item.feed === name &&
+          item.status !== "resolved",
+      );
+    if (lagging && !incident)
+      runtime.store.put("incidents", {
+        id: randomUUID(),
+        type: "feed-lag",
+        feed: name,
+        automatic: true,
+        title: `${name} feed has stopped reporting`,
+        severity: name === "AIDX" ? "high" : "medium",
+        owner: "Airport data operations",
+        status: "open",
+        timestamp: runtime.clock.time,
+        lastMessageAt: feed?.lastUpdate || null,
+      });
+    if (!lagging && incident)
+      runtime.store.put("incidents", {
+        ...incident,
+        status: "resolved",
+        resolvedAt: runtime.clock.time,
+      });
+  }
+}
 export function resetService(runtime) {
   const sequence = runtime.clock.sequence;
   seed(runtime.store);
@@ -71,6 +108,7 @@ export function controlService(runtime, input) {
   runtime.emit("simulation.time");
 }
 export function tickService(runtime, seconds = 1) {
+  monitorFeedLag(runtime);
   if (!runtime.clock.playing) return;
   const targetTime = runtime.clock.time + seconds * 1000 * runtime.clock.speed;
   while (targetTime - runtime.clock.lastSlot >= 15000) {
@@ -129,7 +167,7 @@ export function refreshMockSourcesService(runtime, rewind = false) {
         baseCount,
       });
     }
-    runtime.recordFeed("AODB");
+    if (process.env.FLIGHT_SOURCE !== "vendor-api") runtime.recordFeed("AODB");
     runtime.recordFeed("ACRIS");
   });
 }
@@ -165,21 +203,41 @@ export function eventService(runtime, input) {
     } else if (input.type === "evidence") {
       runtime.clock.evidenceMode = input.mode;
     } else if (input.type === "feed-lag" || input.type === "creative-failure") {
-      runtime.store.put("incidents", {
-        id: randomUUID(),
-        title:
-          input.type === "feed-lag"
-            ? "AIDX feed lag detected"
-            : "Creative rendering failed",
-        severity: "high",
-        owner: "Unassigned",
-        status: "open",
-        timestamp: runtime.clock.time,
-      });
+      const incidentExists = runtime.store
+        .all("incidents")
+        .some(
+          (incident) =>
+            incident.type === input.type &&
+            incident.campaignId === (input.campaignId || null) &&
+            incident.status !== "resolved",
+        );
+      if (!incidentExists)
+        runtime.store.put("incidents", {
+          id: randomUUID(),
+          type: input.type,
+          campaignId: input.campaignId || null,
+          automatic: false,
+          title:
+            input.type === "feed-lag"
+              ? "AIDX feed lag detected"
+              : "Creative rendering failed",
+          severity: "high",
+          owner:
+            input.type === "feed-lag"
+              ? "Flight operations"
+              : "Creative operations",
+          status: "open",
+          timestamp: runtime.clock.time,
+          detail: input.message || null,
+        });
       if (input.type === "creative-failure") {
-        const c = runtime.store.get("campaigns", input.campaignId || "C1");
-        c.creativeApproved = false;
-        runtime.store.put("campaigns", c);
+        const c = input.campaignId
+          ? runtime.store.get("campaigns", input.campaignId)
+          : null;
+        if (c) {
+          c.creativeApproved = false;
+          runtime.store.put("campaigns", c);
+        }
       } else runtime.clock.evidenceMode = "stale";
     } else {
       const f = runtime.store.get("flights", input.flightId || "XY501");

@@ -45,9 +45,13 @@ export function snapshotService(runtime) {
         name,
         adapter:
           name === "AODB"
-            ? "mock-aodb-csv"
+            ? process.env.FLIGHT_SOURCE === "vendor-api"
+              ? "vendor-api"
+              : "mock-aodb-csv"
             : name === "AIDX"
-              ? "mock-aidx"
+              ? process.env.FLIGHT_SOURCE === "vendor-api"
+                ? "vendor-aidx"
+                : "mock-aidx"
               : "mock-acris-ngsi-ld",
         status: age < 60000 ? "healthy" : age < 180000 ? "degraded" : "offline",
         lastUpdate,
@@ -59,7 +63,6 @@ export function snapshotService(runtime) {
     }),
     performance: {
       playlistMs: Math.round(runtime.playlistMs || 0),
-      uptime: 99.94,
     },
     bookings: s.all("bookings"),
   };

@@ -53,6 +53,53 @@ export function presenceService(
       weight: f.pax * boardingWeight * gateWeight,
     };
   });
+  const forecastFlights = nearby
+    .filter((flight) => Date.parse(flight.estimated) >= time)
+    .sort((a, b) => Date.parse(a.estimated) - Date.parse(b.estimated));
+  const forecasts = Array.from({ length: 8 }, (_, index) => {
+    const start = time + index * 15 * 60000;
+    const end = start + 15 * 60000;
+    return {
+      time: iso(end),
+      count: forecastFlights
+        .filter((flight) => {
+          const departure = Date.parse(flight.estimated);
+          return departure >= start && departure < end;
+        })
+        .reduce((total, flight) => total + Math.round(flight.pax * 0.65), 0),
+    };
+  });
+  const next60Flights = forecastFlights.filter(
+    (flight) => Date.parse(flight.estimated) < time + 60 * 60000,
+  );
+  const next60Pax = next60Flights.reduce(
+    (total, flight) => total + Math.round(flight.pax * 0.65),
+    0,
+  );
+  const destinationTotals = new Map();
+  const nationalityTotals = new Map();
+  for (const flight of next60Flights) {
+    const passengers = Math.round(flight.pax * 0.65);
+    destinationTotals.set(
+      flight.destination,
+      (destinationTotals.get(flight.destination) || 0) + passengers,
+    );
+    flight.profile?.nationalities?.forEach((nationality, index) => {
+      const share = [0.6, 0.25, 0.15][index] || 0;
+      nationalityTotals.set(
+        nationality,
+        (nationalityTotals.get(nationality) || 0) + passengers * share,
+      );
+    });
+  }
+  const topDestinations = [...destinationTotals]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([destination]) => destination);
+  const topNationalities = [...nationalityTotals]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([nationality]) => nationality);
   const sum = entries.reduce((a, e) => a + e.weight, 0);
   const avg = (k) =>
     sum
@@ -92,18 +139,6 @@ export function presenceService(
     ].map((k) => [k, +avg(k).toFixed(4)]),
   );
   const count = Math.round(sum * clamp((queue?.count || 36) / 36, 0.85, 1.15));
-  const forecasts = Array.from({ length: 8 }, (_, i) => ({
-    time: iso(time + (i + 1) * 15 * 60000),
-    count: nearby.reduce(
-      (n, f) =>
-        n +
-        (Math.abs(Date.parse(f.estimated) - (time + (i + 1) * 15 * 60000)) <
-        60 * 60000
-          ? Math.round(f.pax * 0.65)
-          : 0),
-      0,
-    ),
-  }));
   return {
     id: zoneId,
     window: iso(Math.floor(time / 300000) * 300000),
@@ -118,7 +153,24 @@ export function presenceService(
     segments,
     forecasts,
     destinations: [...new Set(nearby.map((f) => f.destination))].slice(0, 5),
-    nationalities: nearby[0]?.profile?.nationalities || ["Meridian"],
+    next60: {
+      pax: next60Pax,
+      internationalShare: next60Pax
+        ? +(
+            next60Flights
+              .filter((flight) => flight.international)
+              .reduce(
+                (total, flight) => total + Math.round(flight.pax * 0.65),
+                0,
+              ) / next60Pax
+          ).toFixed(4)
+        : 0,
+      destinations: topDestinations,
+      nationalities: topNationalities,
+    },
+    nationalities: topNationalities.length
+      ? topNationalities
+      : nearby[0]?.profile?.nationalities || ["Meridian"],
     languages: nearby[0]?.profile?.languages || ["English", "हिन्दी"],
     gender: distribution("gender", genderCategories),
     cabin: distribution("cabin", cabinTiers),

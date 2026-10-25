@@ -13,6 +13,10 @@ export function createRuntimeCoordinator(engine, { timer = true } = {}) {
     execute(() => {
       if (engine.store.claimClockLease(owner)) engine.tick();
     });
+  const pollMockSources = () =>
+    execute(() => {
+      if (engine.store.claimClockLease(owner)) engine.refreshMockSources();
+    });
   const safely = (operation) => () => {
     try {
       operation();
@@ -22,6 +26,7 @@ export function createRuntimeCoordinator(engine, { timer = true } = {}) {
   };
   const clockTimer = timer ? setInterval(safely(tick), 1000) : null;
   const syncTimer = timer ? setInterval(safely(synchronize), 250) : null;
+  const feedTimer = timer ? setInterval(safely(pollMockSources), 15000) : null;
   return {
     owner,
     execute,
@@ -30,6 +35,7 @@ export function createRuntimeCoordinator(engine, { timer = true } = {}) {
     close() {
       if (clockTimer) clearInterval(clockTimer);
       if (syncTimer) clearInterval(syncTimer);
+      if (feedTimer) clearInterval(feedTimer);
       engine.store.releaseClockLease(owner);
     },
   };

@@ -602,6 +602,33 @@ export function seed(store) {
       createdAt: iso(timeAt(10)),
     });
   }
+  const tomorrow = Math.floor(timeAt(14, 10) / 86400000) * 86400000 + 86400000;
+  for (let i = 0; i < 20; i++) {
+    const screen = store.get(
+      "screens",
+      `S${String(1 + i * 8).padStart(3, "0")}`,
+    );
+    const campaign = store
+      .all("campaigns")
+      .find(
+        (candidate) =>
+          candidate.status === "approved" &&
+          (!candidate.zoneIds.length ||
+            candidate.zoneIds.includes(screen.zoneId)),
+      );
+    if (!campaign) continue;
+    const price = +(2 + (i % 5) * 0.35).toFixed(2);
+    const timestamp = tomorrow + ((8 + i * 3) % 24) * 3600000;
+    store.put("bookings", {
+      id: `WARM-BOOKING-${i + 1}`,
+      screenId: screen.id,
+      campaignId: campaign.id,
+      timestamp,
+      price,
+    });
+    campaign.spend += price;
+    store.put("campaigns", campaign);
+  }
   for (let d = 1; d <= 30; d++)
     for (let c = 1; c <= 25; c++)
       store.put("activity", {
@@ -620,6 +647,27 @@ export function seed(store) {
         variant: c % 2 ? "A" : "B",
         historical: true,
       });
+  for (const [period, hour] of [8, 10, 12, 13].entries())
+    for (let c = 1; c <= 25; c++) {
+      const campaign = store.get("campaigns", `C${c}`);
+      store.put("activity", {
+        id: `W${period}-${c}`,
+        campaignId: campaign.id,
+        outletId: campaign.outletId,
+        timestamp: timeAt(hour, 15),
+        plays: 24 + (c % 7),
+        impressions: 520 + (c % 6) * 70,
+        scans: 4 + (c % 3),
+        claims: 2 + (c % 2),
+        redemptions: 1,
+        spend: 2.4,
+        revenue: 24,
+        segment: c % 2 ? "family" : "holiday",
+        variant: c % 2 ? "A" : "B",
+        historical: false,
+        prewarmed: true,
+      });
+    }
   const perfume = store.get("campaigns", "C1");
   store.put("campaigns", {
     ...perfume,

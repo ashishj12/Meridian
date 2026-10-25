@@ -17,6 +17,7 @@ export function createApp({
 } = {}) {
   const engine = new AirportEngine(store);
   const app = express();
+  const startedAt = Date.now();
   const clients = new Set();
   const latencies = [];
   const coordinator = createRuntimeCoordinator(engine, { timer });
@@ -84,6 +85,7 @@ export function createApp({
     coordinator,
     clients,
     latencies,
+    startedAt,
     act,
     changed,
     required,
@@ -147,6 +149,7 @@ export function createApp({
     engine,
     store,
     coordinator,
+    startedAt,
     close() {
       coordinator.close();
       for (const res of clients) res.end();

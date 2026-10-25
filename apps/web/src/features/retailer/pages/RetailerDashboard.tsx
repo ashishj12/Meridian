@@ -120,6 +120,18 @@ export function RetailOverview(context: WorkspaceContext) {
             </span>
           </div>
           <FlowChart presence={p} />
+          <p className="flow-summary">
+            {translateText("Next 60 min: ")}
+            {translateText(fmt(p.next60?.pax || 0))}
+            {translateText(" pax, ")}
+            {translateText(percent(p.next60?.internationalShare || 0))}
+            {translateText(" international, top: ")}
+            {translateText((p.next60?.destinations || []).join(", ") || "—")}
+            {translateText(" · nationalities: ")}
+            {translateText(
+              (p.next60?.nationalities || p.nationalities).join(", "),
+            )}
+          </p>
           <div className="destination-list">
             {p.destinations.map((d: string) => (
               <span key={d}>

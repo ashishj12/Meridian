@@ -4,10 +4,16 @@ const clamp = (value, minimum, maximum) =>
   Math.max(minimum, Math.min(maximum, value));
 const iso = (timestamp) => new Date(timestamp).toISOString();
 /** Predict future presence and rank bookable inventory. */
-export function forecastService(runtime, zoneId, timestamp) {
+export function forecastService(runtime, zoneId, timestamp, screen) {
   runtime.forecastCache ??= new Map();
   const cacheKey =
-    zoneId + ":" + timestamp + ":" + Math.floor(runtime.clock.time / 900000);
+    zoneId +
+    ":" +
+    timestamp +
+    ":" +
+    (screen?.id || "zone") +
+    ":" +
+    Math.floor(runtime.clock.time / 900000);
   if (runtime.forecastCache.has(cacheKey))
     return runtime.forecastCache.get(cacheKey);
   runtime.scheduleCache ??= new Map();
@@ -19,7 +25,7 @@ export function forecastService(runtime, zoneId, timestamp) {
     );
   const futureFlights = runtime.scheduleCache.get(day);
   const estimate = {
-    ...runtime.presence(zoneId, futureFlights, timestamp),
+    ...runtime.presence(zoneId, futureFlights, timestamp, screen),
     forecastModel: "synthetic-forward-schedule-v2",
   };
   if (runtime.forecastCache.size > 2500) runtime.forecastCache.clear();
@@ -28,7 +34,7 @@ export function forecastService(runtime, zoneId, timestamp) {
 }
 export function quoteService(runtime, screenId, timestamp) {
   const screen = runtime.store.get("screens", screenId);
-  const forecast = runtime.forecast(screen.zoneId, timestamp);
+  const forecast = runtime.forecast(screen.zoneId, timestamp, screen);
   return { forecast, price: +(1.5 + forecast.count / 300).toFixed(2) };
 }
 export function recommendationsService(runtime, campaignId = "C1") {
@@ -46,7 +52,6 @@ export function recommendationsService(runtime, campaignId = "C1") {
     Math.floor(runtime.clock.time / 86400000) * 86400000 + 86400000;
   const bookings = runtime.store.all("bookings");
   const list = [];
-  const forecasts = new Map();
   for (const s of runtime.store
     .all("screens")
     .filter(
@@ -58,10 +63,7 @@ export function recommendationsService(runtime, campaignId = "C1") {
       const timestamp = tomorrow + h * 3600000;
       if (timestamp < Date.parse(c.start) || timestamp > Date.parse(c.end))
         continue;
-      const forecastKey = `${s.zoneId}-${h}`;
-      if (!forecasts.has(forecastKey))
-        forecasts.set(forecastKey, runtime.quote(s.id, timestamp));
-      const { forecast, price } = forecasts.get(forecastKey);
+      const { forecast, price } = runtime.quote(s.id, timestamp);
       if (
         price > c.budget - c.spend ||
         bookings.some((b) => b.screenId === s.id && b.timestamp === timestamp)
@@ -95,5 +97,23 @@ export function recommendationsService(runtime, campaignId = "C1") {
         reason: `Date-specific forward schedule forecast; ${Math.round(fit * 100)}% weighted segment fit, ${forecast.dwell}m dwell, ${s.status} screen. ${c.delayTrigger ? "Conditional on a qualifying delay. " : ""}Execution revalidates all rules.`,
       });
     }
-  return list.sort((a, b) => b.score - a.score).slice(0, 3);
+  const selected = [];
+  const usedScreens = new Set();
+  const usedHours = new Set();
+  const usedImpressions = new Set();
+  for (const slot of list.sort((a, b) => b.score - a.score)) {
+    const hour = new Date(slot.timestamp).getUTCHours();
+    if (
+      usedScreens.has(slot.screenId) ||
+      usedHours.has(hour) ||
+      usedImpressions.has(slot.impressions)
+    )
+      continue;
+    selected.push(slot);
+    usedScreens.add(slot.screenId);
+    usedHours.add(hour);
+    usedImpressions.add(slot.impressions);
+    if (selected.length === 3) break;
+  }
+  return selected;
 }

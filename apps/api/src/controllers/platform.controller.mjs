@@ -1,6 +1,6 @@
 /** HTTP validation and response mapping for platform. Business decisions stay in services. */
 export function createPlatformController(context) {
-  const { store, engine, latencies, act, publicBase } = context;
+  const { store, engine, latencies, startedAt, act, publicBase } = context;
   return {
     snapshot: act((req, res) => {
       const state = engine.snapshot();
@@ -10,8 +10,12 @@ export function createPlatformController(context) {
           ...state.performance,
           apiP95: Math.round(
             [...latencies].sort((a, b) => a - b)[
-              Math.floor(latencies.length * 0.95)
+              Math.max(0, Math.ceil(latencies.length * 0.95) - 1)
             ] || 0,
+          ),
+          uptimeSeconds: Math.max(
+            0,
+            Math.floor((Date.now() - startedAt) / 1000),
           ),
         },
         publicBaseUrl: publicBase(req),

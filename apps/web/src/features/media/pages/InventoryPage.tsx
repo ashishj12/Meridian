@@ -23,6 +23,7 @@ export function Inventory(context: WorkspaceContext) {
   const [page, setPage] = useState(0);
   const [campaign, setCampaign] = useState("C1");
   const [zone, setZone] = useState("All");
+  const [inventory, setInventory] = useState<ApiRecord>({});
   const screens = context.state.screens.filter(
     (state: ApiRecord) => zone === "All" || state.zoneId === zone,
   );
@@ -30,6 +31,18 @@ export function Inventory(context: WorkspaceContext) {
     Math.floor(context.state.clock.time / 86400000) * 86400000 + 86400000;
   const bookings = context.state.bookings;
   const [yieldForecast, setYieldForecast] = useState<ApiRecord>({});
+  const simulationDay = Math.floor(context.state.clock.time / 86400000);
+  useEffect(() => {
+    let active = true;
+    api("/inventory")
+      .then((result) => {
+        if (active) setInventory(result);
+      })
+      .catch((error) => context.notify(error.message));
+    return () => {
+      active = false;
+    };
+  }, [simulationDay]);
   useEffect(() => {
     let active = true;
     api("/analytics/yield")
@@ -169,24 +182,24 @@ export function Inventory(context: WorkspaceContext) {
                     {translateText(
                       Array.from({ length: 24 }, (_, h) => {
                         const timestamp = tomorrow + h * 3600000;
+                        const projection =
+                          inventory.slotForecasts?.[`${state.zoneId}:${h}`];
                         const booked = bookings.find(
                           (b: ApiRecord) =>
                             b.screenId === state.id &&
                             b.timestamp === timestamp,
                         );
-                        const premium =
-                          context.state.presence[state.zoneId].count > 300 &&
-                          h >= 12 &&
-                          h <= 18;
-                        const price =
-                          1.5 +
-                          context.state.presence[state.zoneId].count / 300;
+                        const premium = projection?.premium || false;
+                        const count =
+                          projection?.count ??
+                          context.state.presence[state.zoneId].count;
+                        const price = projection?.price ?? 1.5 + count / 300;
                         return (
                           <td key={h}>
                             <button
                               aria-label={`${state.id} ${h}:00 ${booked ? "booked" : "available"}`}
                               disabled={!!booked || state.status === "offline"}
-                              title={`${booked ? "Booked" : premium ? "Premium" : "Available"} · ${money(price)} · ${context.state.presence[state.zoneId].count} est. pax`}
+                              title={`${booked ? "Booked" : premium ? "Premium" : "Available"} · ${money(price)} · ${count} est. pax`}
                               className={`slot ${booked ? "booked" : premium ? "premium" : ""}`}
                               onClick={() =>
                                 context

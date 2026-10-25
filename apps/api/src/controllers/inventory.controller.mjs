@@ -5,12 +5,36 @@ import { randomUUID } from "node:crypto";
 export function createInventoryController(context) {
   const { store, engine, act, required } = context;
   return {
-    calendar: (req, res) =>
+    calendar: (req, res) => {
+      const tomorrow =
+        Math.floor(engine.clock.time / 86400000) * 86400000 + 86400000;
+      const slotForecasts = {};
+      for (const zone of store.all("zones")) {
+        const forecasts = Array.from({ length: 24 }, (_, hour) => {
+          const timestamp = tomorrow + hour * 3600000;
+          return {
+            hour,
+            count: engine.forecast(zone.id, timestamp).count,
+          };
+        });
+        const sorted = forecasts
+          .map((forecast) => forecast.count)
+          .sort((a, b) => a - b);
+        const premiumThreshold = sorted[Math.floor(sorted.length * 0.75)] || 0;
+        for (const forecast of forecasts)
+          slotForecasts[`${zone.id}:${forecast.hour}`] = {
+            count: forecast.count,
+            premium: forecast.count > 0 && forecast.count >= premiumThreshold,
+            price: +(1.5 + forecast.count / 300).toFixed(2),
+          };
+      }
       res.json({
         screens: store.all("screens"),
         bookings: store.all("bookings"),
         presence: engine.presences,
-      }),
+        slotForecasts,
+      });
+    },
     recommendations: (req, res) =>
       res.json(engine.recommendations(String(req.query.campaignId || "C1"))),
     book: act((req, res) => {
