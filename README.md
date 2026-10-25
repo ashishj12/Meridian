@@ -22,16 +22,22 @@ Meridian is a local demo of airport retail and digital-screen workflows. It uses
 
 ## Quick start
 
-**You'll need:** [Node.js 24.x](https://nodejs.org/) and npm. Meridian relies on Node's built-in SQLite support, so older Node versions won't work.
+**Recommended: Docker Compose.** Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and run:
+
+```sh
+docker compose up --build
+```
+
+Open **http://localhost:3001** and check **http://localhost:3001/api/health**. Compose builds and starts the app and stores its SQLite database in a named volume. Stop it with **Ctrl+C**.
+
+**Alternative: development mode.** Use [Node.js 24.x](https://nodejs.org/) and npm (the Node built-in SQLite support and Vite 8 toolchain require this supported runtime):
 
 ```sh
 npm install
 npm run dev
 ```
 
-Once the servers are up, open **http://localhost:5173**.
-
-Under the hood, Vite serves the web app on port `5173` and forwards API requests to the API on port `3001`. To confirm the API is healthy, visit http://localhost:3001/api/health. Press **Ctrl+C** in the terminal to stop both servers.
+Open **http://localhost:5173**. Vite forwards API requests to port `3001`. Press **Ctrl+C** to stop both servers.
 
 No `.env` file, account, or external credentials are needed for the default demo. On first start, Meridian creates its SQLite database at `data/meridian.sqlite` and loads the demo data. Your changes are saved there and will still be present next time you start the app.
 
@@ -72,14 +78,6 @@ Then open **http://localhost:3001**. If `dist/index.html` doesn't exist yet, `np
 
 ### Docker
 
-If you have Docker Desktop, run the containerized app from the project folder:
-
-```sh
-docker compose up --build
-```
-
-Then open **http://localhost:3001**. Docker Compose stores the database in a named volume.
-
 | Command                  | Effect                                             |
 | ------------------------ | -------------------------------------------------- |
 | `docker compose down`    | Stops the app and **keeps** your database.         |
@@ -97,7 +95,7 @@ Then open **http://localhost:3001**. Docker Compose stores the database in a nam
 - setting a public URL for QR links, or
 - connecting an external provider.
 
-See [`.env.example`](.env.example) for the available settings, but don't copy it unchanged. Its sample `PUBLIC_BASE_URL` points to a hosted site. For a normal local run, leave that setting out, or replace it with an address that the device scanning the QR code can actually reach. Keep real credentials out of source control.
+See [`.env.example`](.env.example) for the available settings. For a normal local run, leave `PUBLIC_BASE_URL` unset so QR links use the laptop's LAN IP, or set it to an address that the scanning device can reach. The hosted demo sets this variable explicitly. Keep real credentials out of source control.
 
 ## Commands
 
@@ -131,7 +129,7 @@ npx playwright install chromium
 
 ## Troubleshooting
 
-**Errors about SQLite or unsupported modules on startup.** Check your Node version with `node -v`. Meridian needs Node 24.x.
+**Errors about SQLite or unsupported modules on startup.** Check your Node version with `node -v`. Meridian's supported local runtime is Node 24.x; `.nvmrc` selects it for nvm users. The Vite 8 toolchain requires Node 22.12+ even though `node:sqlite` itself was introduced earlier.
 
 **A port is already in use.** The dev setup uses `5173` and `3001`. Stop whatever else is using them, or close any earlier Meridian process still running.
 
